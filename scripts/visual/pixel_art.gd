@@ -170,6 +170,116 @@ static func _blob(img: Image, main: Color, dark: Color, accent: Color) -> void:
 	_rect(img, 12, 17, 2, 2, OUTLINE)
 
 
+# --- Armes (sprites tenus en main, lame vers le HAUT, poignée en bas) ---------
+# Pivot d'animation = bas-centre (le pommeau). CombatantView fait tourner l'arme
+# autour de ce point pour les balayages. Canvas 16x34.
+
+const WW := 16
+const WH := 34
+static var _wcache: Dictionary = {}
+
+const STEEL := Color8(205, 212, 224)
+const STEEL_HI := Color8(240, 245, 255)
+const STEEL_DK := Color8(120, 128, 145)
+const GOLD := Color8(206, 170, 86)
+const WOOD := Color8(120, 88, 58)
+const WOOD_DK := Color8(82, 58, 38)
+const GRIP := Color8(74, 50, 36)
+
+
+## Retourne (et met en cache) la texture d'une arme. "" = pas d'arme (poings/griffes).
+static func for_weapon(kind: String) -> Texture2D:
+	if kind == "":
+		return null
+	if _wcache.has(kind):
+		return _wcache[kind]
+	var img := Image.create(WW, WH, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	match kind:
+		"sword":      _w_sword(img, 2, 17)
+		"greatsword": _w_sword(img, 3, 20)
+		"rapier":     _w_rapier(img)
+		"dagger":     _w_sword(img, 2, 9)
+		"axe":        _w_axe(img)
+		"staff":      _w_staff(img, Color8(150, 210, 255))
+		"staff_fire": _w_staff(img, Color8(255, 170, 80))
+		"staff_dark": _w_staff(img, Color8(170, 130, 230))
+		"staff_holy": _w_staff(img, Color8(255, 232, 150))
+		"spear":      _w_spear(img)
+		"mace":       _w_mace(img)
+		"bow":        _w_bow(img)
+		_:            _w_sword(img, 2, 17)
+	_apply_outline(img, OUTLINE)
+	var tex := ImageTexture.create_from_image(img)
+	_wcache[kind] = tex
+	return tex
+
+
+static func _w_sword(img: Image, bw: int, blade_h: int) -> void:
+	var cx := WW / 2
+	var x := cx - bw / 2 - 1
+	_rect(img, x, 2, bw + 1, blade_h, STEEL)             # lame
+	_rect(img, x, 2, 1, blade_h, STEEL_HI)               # tranchant lumineux
+	_rect(img, cx, 1, 1, 1, STEEL_HI)                    # pointe
+	var guard_y := 2 + blade_h
+	_rect(img, x - 2, guard_y, bw + 5, 2, GOLD)          # garde
+	_rect(img, cx - 1, guard_y + 2, 2, 6, GRIP)          # poignée
+	_rect(img, cx - 2, guard_y + 8, 4, 2, GOLD)          # pommeau
+
+
+static func _w_rapier(img: Image) -> void:
+	var cx := WW / 2
+	_rect(img, cx, 1, 1, 20, STEEL_HI)                   # lame fine
+	_rect(img, cx - 1, 21, 3, 1, GOLD)
+	_rect(img, cx - 2, 22, 5, 2, GOLD)                   # garde en coupe
+	_rect(img, cx, 24, 1, 6, GRIP)
+	_rect(img, cx - 1, 30, 3, 1, GOLD)
+
+
+static func _w_axe(img: Image) -> void:
+	var cx := WW / 2
+	_rect(img, cx - 1, 2, 2, 28, WOOD)                   # manche
+	_rect(img, cx - 1, 2, 1, 28, WOOD_DK)
+	_rect(img, cx + 1, 3, 5, 8, STEEL)                   # fer
+	_rect(img, cx + 5, 4, 1, 6, STEEL_HI)               # tranchant
+	_rect(img, cx - 5, 4, 4, 6, STEEL_DK)               # contre-fer
+
+
+static func _w_staff(img: Image, orb: Color) -> void:
+	var cx := WW / 2
+	_rect(img, cx - 1, 6, 2, 26, WOOD)                   # hampe
+	_rect(img, cx - 1, 6, 1, 26, WOOD_DK)
+	_rect(img, cx - 3, 1, 6, 6, orb)                     # orbe
+	_rect(img, cx - 1, 2, 2, 2, Color(1, 1, 1, 0.9))    # éclat
+
+
+static func _w_spear(img: Image) -> void:
+	var cx := WW / 2
+	_rect(img, cx - 1, 6, 2, 26, WOOD)                   # hampe
+	_rect(img, cx, 1, 1, 6, STEEL_HI)                    # fer pointu
+	_rect(img, cx - 1, 4, 3, 2, STEEL)                   # ailettes
+	_rect(img, cx - 1, 6, 1, 26, WOOD_DK)
+
+
+static func _w_mace(img: Image) -> void:
+	var cx := WW / 2
+	_rect(img, cx - 1, 10, 2, 20, WOOD)                  # manche
+	_rect(img, cx - 3, 2, 6, 7, STEEL_DK)               # tête
+	_rect(img, cx - 1, 3, 2, 4, STEEL_HI)
+	_rect(img, cx - 4, 4, 1, 2, STEEL)                  # pointes
+	_rect(img, cx + 3, 4, 1, 2, STEEL)
+
+
+static func _w_bow(img: Image) -> void:
+	var cx := WW / 2
+	# Arc en C (ouvert vers l'avant), corde droite.
+	for j in range(2, 31):
+		var t := float(j - 2) / 28.0
+		var bend := int(round(sin(t * PI) * 4.0))
+		_rect(img, cx - 2 - bend, j, 2, 1, WOOD)
+	_rect(img, cx - 1, 2, 1, 29, Color(0.9, 0.9, 0.9, 0.7))   # corde
+
+
 # --- Outils image ------------------------------------------------------------
 
 static func _rect(img: Image, x: int, y: int, w: int, h: int, color: Color) -> void:

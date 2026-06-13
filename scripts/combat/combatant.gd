@@ -150,13 +150,13 @@ static func from_enemy(e: EnemyData) -> Combatant:
 	cb.is_player = false
 	cb.is_boss = e.is_boss
 	cb.archetype = e.archetype
-	cb.max_health = s.max_health
-	cb.health = s.max_health
+	cb.max_health = int(round(s.max_health * GameSettings.enemy_health_scale()))
+	cb.health = cb.max_health
 	cb.strength = s.strength
 	cb.defense = s.defense
 	cb.agility = s.agility
 	cb.crit_chance = s.crit_chance
-	cb.base_damage = e.base_damage
+	cb.base_damage = int(round(e.base_damage * GameSettings.enemy_damage_scale()))
 	cb.attack_sequences = e.attack_sequences.duplicate()
 	cb.sprite_kind = e.sprite_kind
 	return cb

@@ -31,6 +31,34 @@ static func enemy_aggression_scale() -> float:
 			return 1.35
 	return 1.0
 
+## Échelle des dégâts ennemis (appliquée à base_damage à la fabrication).
+## La difficulté n'est pas QUE ça (cf. parade + agressivité), mais le jeu doit
+## piquer : un coup encaissé doit faire mal.
+static func enemy_damage_scale() -> float:
+	match difficulty:
+		GameEnums.Difficulty.EASY:
+			return 0.85
+		GameEnums.Difficulty.NORMAL:
+			return 1.0
+		GameEnums.Difficulty.HARD:
+			return 1.0
+		GameEnums.Difficulty.HARDCORE:
+			return 1.0
+	return 1.0
+
+## Échelle des PV ennemis (combats plus longs = plus d'occasions de se faire toucher).
+static func enemy_health_scale() -> float:
+	match difficulty:
+		GameEnums.Difficulty.EASY:
+			return 0.85
+		GameEnums.Difficulty.NORMAL:
+			return 1.0
+		GameEnums.Difficulty.HARD:
+			return 1.0
+		GameEnums.Difficulty.HARDCORE:
+			return 1.0
+	return 1.0
+
 static func difficulty_name() -> String:
 	match difficulty:
 		GameEnums.Difficulty.EASY:

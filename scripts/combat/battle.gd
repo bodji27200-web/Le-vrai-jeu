@@ -26,6 +26,9 @@ var _views := {}                       ## Combatant -> CombatantView
 var _last_target: Combatant = null     ## Pour varier le ciblage ennemi.
 var _round := 0
 var _camera: BattleCamera
+var _stage: BattleStage                 ## Décor isométrique (fond + sol).
+var _field: Node2D                      ## Combattants, triés en profondeur (y-sort).
+var _fx_root: Node2D                    ## FX (tranches, nombres, étincelles) au-dessus.
 
 # --- Capture de défense active -----------------------------------------------
 var _capturing := false
@@ -49,10 +52,27 @@ signal _ui_action(kind: String, payload: Variant)
 
 func _ready() -> void:
 	_build_teams()
+	_build_stage()
 	_build_views()
 	_build_hud()
 	_refresh_ui()
 	_run_battle()
+
+
+## Construit la pile de rendu : décor isométrique (fond), terrain trié en
+## profondeur (y-sort), puis FX par-dessus.
+func _build_stage() -> void:
+	_stage = BattleStage.new()
+	_stage.screen = get_viewport_rect().size
+	_stage.floor_center = Vector2(_stage.screen.x * 0.5, _stage.screen.y * 0.62)
+	add_child(_stage)
+
+	_field = Node2D.new()
+	_field.y_sort_enabled = true       # les unités au premier plan passent devant
+	add_child(_field)
+
+	_fx_root = Node2D.new()
+	add_child(_fx_root)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -94,14 +114,14 @@ func _build_teams() -> void:
 func _build_views() -> void:
 	for i in _players.size():
 		var v := CombatantView.new()
-		add_child(v)
+		_field.add_child(v)
 		v.setup(_players[i].display_name, _players[i].sprite_kind, Vector2(60, 90), false)
 		v.set_home(HERO_POS[i])
 		_views[_players[i]] = v
 	for i in _enemies.size():
 		var e := _enemies[i]
 		var ev := CombatantView.new()
-		add_child(ev)
+		_field.add_child(ev)
 		var size := Vector2(95, 135) if e.is_boss else Vector2(70, 100)
 		ev.setup(e.display_name, e.sprite_kind, size, true)
 		ev.set_home(ENEMY_SLOTS[i] if i < ENEMY_SLOTS.size() else Vector2(740, 320))
@@ -260,11 +280,12 @@ func _do_player_attack(actor: Combatant, target: Combatant, power: float, label:
 		if not target.is_alive():
 			break
 		var target_view: CombatantView = _views[target]
-		actor_view.play_attack(target_view.home)
+		actor_view.play_attack(target_view.home, h)
 		await get_tree().create_timer(CombatantView.WINDUP + CombatantView.STRIKE).timeout
 		var dmg: Dictionary = CombatResolver.attack_damage(actor, target, power)
 		target.take_damage(dmg.damage)
 		target_view.play_hit()
+		_spawn_slash(target_view, actor_view.attack_geometry(h), Color(1, 0.95, 0.78) if not dmg.crit else Color(1, 0.8, 0.35))
 		_impact_fx(target_view, str(dmg.damage), Color(1, 0.85, 0.3) if dmg.crit else Color(1, 0.95, 0.95), dmg.crit)
 		if dmg.crit:
 			await _hitstop()
@@ -390,7 +411,7 @@ func _enemy_turn(enemy: Combatant) -> void:
 		if target_is_hero:
 			# Cible un héros : le joueur défend activement.
 			_set_status("%s frappe ! Coup %d/%d — réagis !" % [enemy.display_name, i + 1, seq])
-			var outcome: GameEnums.DefenseResult = await _defense_window(enemy, target)
+			var outcome: GameEnums.DefenseResult = await _defense_window(enemy, target, i)
 			match outcome:
 				GameEnums.DefenseResult.PARRY:
 					target.gain_mana(PARRY_MANA_GAIN)
@@ -413,11 +434,12 @@ func _enemy_turn(enemy: Combatant) -> void:
 		else:
 			# Cible une invocation : pas de parade, elle encaisse (rôle du tank).
 			parried_all = false
-			_views[enemy].play_attack(_views[target].home)
+			_views[enemy].play_attack(_views[target].home, i)
 			await get_tree().create_timer(CombatantView.WINDUP + CombatantView.STRIKE).timeout
 			var dmg: Dictionary = CombatResolver.attack_damage(enemy, target)
 			target.take_damage(dmg.damage)
 			_views[target].play_hit()
+			_spawn_slash(_views[target], _views[enemy].attack_geometry(i), Color(1, 0.72, 0.66))
 			_impact_fx(_views[target], str(dmg.damage), Color(1, 0.5, 0.4), false)
 			_log("  %s frappe %s : %d dégâts." % [enemy.display_name, target.display_name, dmg.damage])
 		_refresh_ui()
@@ -431,11 +453,12 @@ func _enemy_turn(enemy: Combatant) -> void:
 		_log("[b][color=lime]CONTRE PARFAIT ![/color][/b] %s riposte gratuitement !" % target.display_name)
 		_spawn_damage(_views[target], "CONTRE PARFAIT !", Color(0.5, 1.0, 0.5), true)
 		_camera.punch_zoom(0.16, 0.3)
-		_views[target].play_attack(_views[enemy].home)
+		_views[target].play_attack(_views[enemy].home, 0)
 		await get_tree().create_timer(CombatantView.WINDUP + CombatantView.STRIKE).timeout
 		var dmg: Dictionary = CombatResolver.attack_damage(target, enemy, 1.5)
 		enemy.take_damage(dmg.damage)
 		_views[enemy].play_hit()
+		_spawn_slash(_views[enemy], _views[target].attack_geometry(0), Color(0.7, 1.0, 0.7))
 		_spawn_spark(_views[enemy], Color(0.6, 1.0, 0.6))
 		_spawn_damage(_views[enemy], str(dmg.damage), Color(0.6, 1.0, 0.6), true)
 		_camera.add_trauma(0.5)
@@ -453,16 +476,20 @@ func _scaled_hits(base: int) -> int:
 
 ## Joue l'attaque ennemie et capture la réaction du joueur. L'impact survient à
 ## WINDUP + STRIKE après le début de l'élan ; le joueur doit réagir à ce moment.
-func _defense_window(attacker: Combatant, defender: Combatant) -> GameEnums.DefenseResult:
+func _defense_window(attacker: Combatant, defender: Combatant, move_index: int = 0) -> GameEnums.DefenseResult:
 	_def_input = ""
 	_def_time = -1.0
 	_current_defender_view = _views[defender]
 	_capture_start_ms = Time.get_ticks_msec()
 	_capturing = true
 
-	_views[attacker].play_attack(_views[defender].home)
+	var attacker_view: CombatantView = _views[attacker]
+	attacker_view.play_attack(_views[defender].home, move_index)
 	var impact := CombatantView.WINDUP + CombatantView.STRIKE
-	await get_tree().create_timer(impact + TAIL).timeout
+	await get_tree().create_timer(impact).timeout
+	# La tranche apparaît au contact, que le joueur pare ou non (le coup A eu lieu).
+	_spawn_slash(_views[defender], attacker_view.attack_geometry(move_index), Color(1, 0.78, 0.72))
+	await get_tree().create_timer(TAIL).timeout
 
 	_capturing = false
 	_current_defender_view = null
@@ -499,11 +526,12 @@ func _summon_turn(summon: Combatant) -> void:
 	for i in maxi(1, summon.attacks_per_turn):
 		if not target.is_alive():
 			break
-		_views[summon].play_attack(_views[target].home)
+		_views[summon].play_attack(_views[target].home, i)
 		await get_tree().create_timer(CombatantView.WINDUP + CombatantView.STRIKE).timeout
 		var dmg: Dictionary = CombatResolver.attack_damage(summon, target)
 		target.take_damage(dmg.damage)
 		_views[target].play_hit()
+		_spawn_slash(_views[target], _views[summon].attack_geometry(i), summon.body_color)
 		_impact_fx(_views[target], str(dmg.damage), summon.body_color, dmg.crit)
 		_refresh_ui()
 		if not target.is_alive():
@@ -526,7 +554,7 @@ func _do_summon(master: Combatant, data: SummonData) -> void:
 	_summon_slots[summon] = slot
 
 	var v := CombatantView.new()
-	add_child(v)
+	_field.add_child(v)
 	v.setup(summon.display_name, summon.sprite_kind, Vector2(54, 80), false)
 	v.set_home(SUMMON_POS[slot])
 	_views[summon] = v
@@ -696,16 +724,27 @@ func _impact_fx(view: CombatantView, text: String, color: Color, big: bool) -> v
 
 func _spawn_damage(view: CombatantView, text: String, color: Color, big: bool = false) -> void:
 	var dn := DamageNumber.new()
-	add_child(dn)
+	_fx_root.add_child(dn)
 	dn.position = view.home + Vector2(0, -70)
 	dn.show_value(text, color, big)
 
 
 func _spawn_spark(view: CombatantView, color: Color) -> void:
 	var s := HitSpark.new()
-	add_child(s)
+	_fx_root.add_child(s)
 	s.position = view.home
 	s.burst(color)
+
+
+## Tranche lumineuse à l'impact, orientée selon le coup de l'attaquant.
+## `geo` provient de CombatantView.attack_geometry(move_index).
+func _spawn_slash(target_view: CombatantView, geo: Dictionary, color: Color) -> void:
+	if geo.get("caster", false):
+		return   # les lanceurs de sorts : éclat magique (spark), pas de tranche d'arme
+	var s := SlashFX.new()
+	_fx_root.add_child(s)
+	s.position = target_view.home + Vector2(0, -10)
+	s.slash(geo.slash, color, 72.0, geo.flip)
 
 
 ## Micro-arrêt du temps pour donner du poids aux coups (temps réel, ignore time_scale).
