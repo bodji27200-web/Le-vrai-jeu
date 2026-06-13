@@ -11,8 +11,13 @@ config_version=5
 [application]
 
 config/name="le vrai jeu"
+run/main_scene="res://scenes/overworld.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Game="*uid://cak4vs1t18duh"
 
 [physics]
 
