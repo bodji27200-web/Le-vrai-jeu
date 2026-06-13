@@ -124,7 +124,8 @@ func attack_geometry(move_index: int) -> Dictionary:
 ## Joue l'attaque. `move_index` choisit le coup dans l'enchaînement du style :
 ## coups successifs = animations DIFFÉRENTES (gauche, droite, dessus, estoc...).
 func play_attack(target_pos: Vector2, move_index: int = 0) -> void:
-	var dir := (target_pos - home).normalized()
+	var to_target := target_pos - home
+	var dir := to_target.normalized()
 	var moves: Array = _style.moves
 	var key: String = moves[move_index % moves.size()] if not moves.is_empty() else "right"
 	var mp := CombatStyle.move(key)
@@ -133,7 +134,13 @@ func play_attack(target_pos: Vector2, move_index: int = 0) -> void:
 		_play_cast(dir)
 		return
 
+	# Distance d'élan. Au corps-à-corps, l'attaquant FONCE jusqu'au contact :
+	# les positions sont libres et la cible est loin — sinon l'arme balaie dans le
+	# vide. Les unités à distance (arc) gardent le petit élan de leur coup sur place.
 	var lunge: float = mp.lunge
+	if not bool(_style.ranged):
+		var gap := 84.0   # s'arrête juste devant la cible
+		lunge = maxf(mp.lunge, to_target.length() - gap)
 	var t := create_tween()
 	# Armement (tell) : léger recul + arme levée.
 	t.tween_property(_body, "position", -dir * 18.0, WINDUP).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
