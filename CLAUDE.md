@@ -180,17 +180,23 @@ Construire dans cet ordre, un système à la fois, en testant avant d'enchaîner
    `world.tres` + conteneurs `PartyData`/`EncounterData`/`WorldData`. Voir
    `content/README.md`. Reste : éclater en `.tres` plus granulaires si besoin
    (une classe/un ennemi par fichier) et brancher une UI d'édition en jeu.
-2. **Classes profondes** (~10) : arbres de compétences + spécialisations qui
-   changent réellement le gameplay. ✅ FAIT pour le **Nécromancien** (invocations)
-   et 6 autres classes : **Gardien, Pyromancien, Duelliste, Clerc, Berserker,
-   Rôdeur** (7 au catalogue via `ContentLibrary.all_classes()`), chacune avec 2
-   spécialisations qui changent le jeu. Mécaniques ajoutées : compétences
-   **multi-frappes** (`SkillData.hits`), **soins** ciblés/de groupe
+2. **Classes profondes** (~10) : ✅ FAIT. **10 classes** au catalogue
+   (`ContentLibrary.all_classes()`) : Gardien, Pyromancien, Nécromancien,
+   Duelliste, Clerc, Berserker, Rôdeur, Paladin, Élémentaliste, Moine — chacune
+   avec 2 spécialisations qui changent le jeu. Mécaniques data-driven :
+   compétences **multi-frappes** (`SkillData.hits`), **soins** ciblés/de groupe
    (`heal_power` + `target_type` SELF/SINGLE_ALLY/ALL_ALLIES, calcul pur
-   `CombatResolver.heal_amount`), **déblocage par niveau** (`unlock_level`, socle
-   d'arbre), et specs étendues (`crit_bonus`, `heal_power_mult`, `max_health_mult`).
-   Reste : ~3 autres classes, une vraie **UI d'arbre de progression** et la
-   sélection d'équipe (le combat utilise toujours le trio de démo, 3 slots).
+   `CombatResolver.heal_amount`), **déblocage par niveau** (`unlock_level`), specs
+   étendues (`crit_bonus`, `heal_power_mult`, `max_health_mult`).
+   **UI de composition d'équipe + arbre de compétences** :
+   `scenes/party_select.tscn` (`scripts/world/party_select.gd`), ouverte depuis
+   l'overworld par la touche **P**. On parcourt les classes, on consulte l'arbre
+   (compétences débloquées par niveau, verrouillées grisées), on choisit une
+   spécialisation et un niveau, et on assemble jusqu'à 3 héros. L'équipe validée
+   est stockée dans `Game.active_party` et utilisée par le combat (repli sur le
+   trio de démo si vide). L'avatar d'exploration prend le sprite du meneur.
+   Reste : XP/montée de niveau in-game (cf. milestone 6) pour gagner les niveaux
+   au lieu de les choisir, et des nœuds d'arbre à embranchements (choix exclusifs).
 3. **IA ennemie par archétype** : ✅ FAIT (`EnemyBrain` : agressif/défensif/
    opportuniste/protecteur/manipulateur réagissant à la situation + groupe de 3
    ennemis de démo). Reste : plus d'archétypes/comportements, réactions à l'échec.

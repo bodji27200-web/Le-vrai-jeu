@@ -88,7 +88,7 @@ func _initialize() -> void:
 	# --- Classes profondes : catalogue, compétences, soins, specs ---
 	var classes := ContentLibrary.all_classes()
 	print("Classes au catalogue : ", classes.size())
-	assert(classes.size() == 7)
+	assert(classes.size() == 10)
 
 	# Chaque classe a au moins une compétence et deux spécialisations.
 	for cls in classes:
@@ -142,5 +142,13 @@ func _initialize() -> void:
 	print("Compétences Gardien : niv.1 = %d / niv.5 = %d" % [guard_lv1.skills.size(), guard_lv5.skills.size()])
 	assert(guard_lv5.skills.size() >= guard_lv1.skills.size())
 
-	print("OK : invocations + spé + aggro + IA + classes profondes (soin/multi-frappes/specs) validés.")
+	# make_member (utilisé par l'UI de composition d'équipe) produit un héros jouable.
+	var monk_cls := ContentLibrary.monk_class()
+	var member := ContentLibrary.make_member("Test", monk_cls, monk_cls.specializations[0], 5)
+	assert(member.weapon != null and member.weapon.base_damage > 5)
+	var monk := Combatant.from_character(member)
+	assert(monk.is_alive() and not monk.skills.is_empty())
+	print("make_member : %s niv.%d, %d compétences débloquées" % [member.display_name, member.level, monk.skills.size()])
+
+	print("OK : invocations + spé + aggro + IA + classes profondes + composition d'équipe validés.")
 	quit()

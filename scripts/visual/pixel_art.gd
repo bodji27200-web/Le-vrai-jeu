@@ -52,6 +52,12 @@ static func _paint(img: Image, kind: String) -> void:
 			_humanoid(img, Color8(235, 200, 165), Color8(160, 52, 46), Color8(96, 30, 28), Color8(220, 190, 70))
 		"rodeur":
 			_humanoid(img, Color8(235, 200, 165), Color8(70, 110, 70), Color8(40, 66, 42), Color8(150, 110, 70))
+		"paladin":
+			_knight(img, Color8(215, 205, 170), Color8(150, 130, 80), Color8(235, 200, 165), Color8(245, 225, 120))
+		"elementaliste":
+			_mage(img, Color8(70, 150, 180), Color8(40, 90, 120), Color8(235, 200, 165), Color8(150, 210, 255), true, false)
+		"moine":
+			_humanoid(img, Color8(235, 200, 165), Color8(210, 140, 70), Color8(150, 90, 44), Color8(240, 220, 150))
 		_:
 			_humanoid(img, Color8(220, 200, 170), Color8(110, 120, 160), Color8(70, 78, 110), Color8(220, 200, 120))
 

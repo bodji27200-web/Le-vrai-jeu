@@ -86,7 +86,7 @@ func _build_zone() -> void:
 	_player.speed = 420.0
 	_player.bounds = ZONE_BOUNDS
 	add_child(_player)
-	_player.setup("gardien", Vector2(48, 66))
+	_player.setup(Game.lead_sprite_kind(), Vector2(48, 66))
 	_player.position = Vector2(-900, 0)
 
 	# Caméra rapprochée qui suit : le décor paraît immense.

@@ -81,7 +81,11 @@ func _register_defense(kind: String) -> void:
 # =============================================================================
 
 func _build_teams() -> void:
-	for c in ContentDB.party():
+	# Équipe composée par le joueur si elle existe, sinon trio de démo.
+	var members: Array[CharacterData] = ContentDB.party()
+	if not Game.active_party.is_empty():
+		members = Game.active_party
+	for c in members:
 		_players.append(Combatant.from_character(c))
 	for e in ContentDB.demo_encounter():
 		_enemies.append(Combatant.from_enemy(e))

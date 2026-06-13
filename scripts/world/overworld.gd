@@ -25,10 +25,12 @@ func _process(_delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _near == null:
-		return
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_E]:
+		# Composition d'équipe : accessible depuis n'importe où sur la carte.
+		if event.keycode == KEY_P:
+			Game.goto_party_select()
+			return
+		if _near != null and event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_E]:
 			Game.enter_zone(_near)
 
 
@@ -73,7 +75,7 @@ func _build_world() -> void:
 	_player.speed = 300.0
 	_player.bounds = MAP_BOUNDS
 	add_child(_player)
-	_player.setup("gardien", Vector2(20, 28))
+	_player.setup(Game.lead_sprite_kind(), Vector2(20, 28))
 	_player.position = Vector2(0, 60)
 
 	# Caméra fixe dézoomée : on voit tout le monde.
@@ -94,7 +96,7 @@ func _build_ui() -> void:
 	layer.add_child(title)
 
 	var help := Label.new()
-	help.text = "Flèches / ZQSD : se déplacer"
+	help.text = "Flèches / ZQSD : se déplacer    ·    P : composer l'équipe"
 	help.add_theme_font_size_override("font_size", 16)
 	help.position = Vector2(30, 64)
 	layer.add_child(help)

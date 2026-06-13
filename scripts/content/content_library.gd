@@ -297,7 +297,77 @@ static func ranger_class() -> ClassData:
 	return c
 
 
-## Catalogue de toutes les classes jouables (pour une future UI de sélection).
+## Paladin — hybride : châtie de lumière, soigne un allié, encaisse.
+static func paladin_class() -> ClassData:
+	var skills: Array[SkillData] = [
+		_atk("Marteau de Justice", 2, 1.4, GameEnums.Element.HOLY, "Frappe sacrée fiable.", 1, 1),
+		_heal("Imposition des Mains", 4, 1.0, GameEnums.TargetType.SINGLE_ALLY, "Pose les mains sur un allié et le soigne.", 1),
+		_atk("Jugement", 6, 2.5, GameEnums.Element.HOLY, "Condamnation divine dévastatrice.", 1, 4),
+	]
+	var specs: Array[SpecializationData] = [
+		_combat_spec("Croisé", 1.3, 0.05, 1.0, 1.0,
+			"Foi guerrière : châtiments sacrés bien plus puissants."),
+		_combat_spec("Protecteur de la Foi", 1.0, 0.0, 1.4, 1.2,
+			"Bouclier vivant : soins renforcés et grande robustesse."),
+	]
+	var c := _class("Paladin",
+		_stats(145, 16, 16, 9, 0.05),
+		_stats(16, 3, 3, 1, 0.0),
+		skills,
+		"Chevalier sacré : punit, soigne et tient la ligne.",
+		specs)
+	c.sprite_kind = "paladin"
+	return c
+
+
+## Élémentaliste — mage polyvalent : foudre et glace, dont une rafale.
+static func elementalist_class() -> ClassData:
+	var skills: Array[SkillData] = [
+		_atk("Éclair", 2, 1.4, GameEnums.Element.LIGHTNING, "Décharge rapide et précise.", 1, 1),
+		_atk("Stalactites", 4, 0.7, GameEnums.Element.ICE, "Trois pics de glace en rafale.", 3, 1),
+		_atk("Tempête", 6, 2.5, GameEnums.Element.LIGHTNING, "Orage dévastateur sur l'ennemi.", 1, 4),
+	]
+	var specs: Array[SpecializationData] = [
+		_combat_spec("Foudroyeur", 1.35, 0.0, 1.0, 1.0,
+			"Maîtrise de la foudre : puissance de sort accrue."),
+		_combat_spec("Cryomancien", 1.1, 0.12, 1.0, 1.0,
+			"Froid mordant : critiques glacials fréquents."),
+	]
+	var c := _class("Élémentaliste",
+		_stats(92, 21, 7, 12, 0.08),
+		_stats(9, 4, 1, 2, 0.005),
+		skills,
+		"Polyvalence des éléments : foudre vive ou glace en rafale.",
+		specs)
+	c.sprite_kind = "elementaliste"
+	return c
+
+
+## Moine — arts martiaux : combos de coups rapides et méditation (auto-soin).
+static func monk_class() -> ClassData:
+	var skills: Array[SkillData] = [
+		_atk("Paume de Fer", 2, 1.3, GameEnums.Element.NONE, "Frappe nette et disciplinée.", 1, 1),
+		_atk("Rafale de Coups", 4, 0.55, GameEnums.Element.NONE, "Quatre frappes en un souffle.", 4, 1),
+		_heal("Méditation", 3, 1.0, GameEnums.TargetType.SELF, "Recentre son souffle et se soigne.", 1),
+		_atk("Frappe du Dragon", 5, 2.4, GameEnums.Element.NONE, "Un coup unique d'une force colossale.", 1, 5),
+	]
+	var specs: Array[SpecializationData] = [
+		_combat_spec("Voie du Poing", 1.25, 0.08, 1.0, 1.0,
+			"Discipline offensive : coups plus durs et critiques."),
+		_combat_spec("Voie de l'Esprit", 1.0, 0.0, 1.4, 1.15,
+			"Équilibre intérieur : méditation renforcée et endurance."),
+	]
+	var c := _class("Moine",
+		_stats(118, 18, 11, 17, 0.10),
+		_stats(12, 3, 2, 3, 0.01),
+		skills,
+		"Corps et esprit : enchaîne les coups, se régénère seul.",
+		specs)
+	c.sprite_kind = "moine"
+	return c
+
+
+## Catalogue de toutes les classes jouables (UI de sélection d'équipe).
 static func all_classes() -> Array[ClassData]:
 	return [
 		guardian_class(),
@@ -307,7 +377,17 @@ static func all_classes() -> Array[ClassData]:
 		cleric_class(),
 		berserker_class(),
 		ranger_class(),
+		paladin_class(),
+		elementalist_class(),
+		monk_class(),
 	]
+
+
+## Construit un héros jouable à partir d'une classe, d'une spé et d'un niveau.
+## Donne une arme par défaut correcte (sinon les dégâts seraient ridicules).
+static func make_member(name: String, cls: ClassData, spec: SpecializationData, level: int) -> CharacterData:
+	var w := _weapon("Arme de %s" % cls.display_name, 9, GameEnums.Element.NONE, GameEnums.Rarity.RARE)
+	return _character(name, cls, w, level, spec)
 
 # =============================================================================
 # ÉQUIPE DE DÉPART
