@@ -64,7 +64,12 @@ func _ready() -> void:
 func _build_stage() -> void:
 	_stage = BattleStage.new()
 	_stage.screen = get_viewport_rect().size
-	_stage.floor_center = Vector2(_stage.screen.x * 0.5, _stage.screen.y * 0.62)
+	# Sol dimensionné et centré pour contenir TOUS les emplacements (héros,
+	# invocations, ennemis) avec marge : sinon les unités du haut/gauche
+	# débordaient du losange. Coordonnées en repère de base 1152x648 (l'étirement
+	# canvas_items garde get_viewport_rect() à cette taille).
+	_stage.floor_center = Vector2(560, 380)
+	_stage.floor_half = Vector2(760, 330)
 	add_child(_stage)
 
 	_field = Node2D.new()
