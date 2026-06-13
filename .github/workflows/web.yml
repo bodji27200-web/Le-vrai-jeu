@@ -1,0 +1,73 @@
+name: Build & déploiement Web (Godot)
+
+# Compile le jeu en WebAssembly (mono-thread, compatible GitHub Pages) puis le
+# publie sur GitHub Pages. C'est une SORTIE EN PLUS : ça n'affecte en rien le
+# développement ni les tests sous Godot. Le build est régénéré à chaque push
+# sur main, et déclenchable à la main (onglet Actions → "Run workflow").
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un seul déploiement à la fois.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    env:
+      GODOT_VERSION: "4.6.3"
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Godot ${{ env.GODOT_VERSION }} + templates web
+        run: |
+          set -e
+          BASE="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          curl -sSL -o godot.zip "$BASE/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          curl -sSL -o templates.tpz "$BASE/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          unzip -q godot.zip
+          chmod +x "Godot_v${GODOT_VERSION}-stable_linux.x86_64"
+          TPL_DIR="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$TPL_DIR"
+          unzip -q templates.tpz
+          mv templates/* "$TPL_DIR/"
+
+      - name: Importer le projet (deux passes pour le cache d'UID)
+        run: |
+          GODOT="./Godot_v${GODOT_VERSION}-stable_linux.x86_64"
+          $GODOT --headless --path . --import || true
+          $GODOT --headless --path . --import || true
+
+      - name: Exporter en Web (mono-thread)
+        run: |
+          GODOT="./Godot_v${GODOT_VERSION}-stable_linux.x86_64"
+          mkdir -p build/web
+          $GODOT --headless --path . --export-release "Web" build/web/index.html
+          test -f build/web/index.wasm
+
+      - name: Configurer GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Préparer l'artefact Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+      - name: Déployer sur GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
