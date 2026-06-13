@@ -20,6 +20,13 @@ static func attack_damage(attacker: Combatant, defender: Combatant, power: float
 	return {"damage": dmg, "crit": crit}
 
 
+## Calcule un montant de soin. Suit la même échelle offensive que les dégâts
+## (arme + force), pondérée par `power` et le multiplicateur de soin de la spé.
+static func heal_amount(caster: Combatant, power: float = 1.0) -> int:
+	var raw := (float(caster.base_damage) + float(caster.strength)) * power * caster.heal_power_mult
+	return int(maxf(1.0, raw))
+
+
 ## Choisit la cible d'un ennemi via un score pondéré dépendant de l'archétype.
 ## Le tirage est pondéré (et non déterministe) pour que le combat reste vivant,
 ## et on évite de matraquer la même cible — sauf pour achever un blessé.

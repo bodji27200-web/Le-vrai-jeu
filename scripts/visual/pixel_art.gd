@@ -44,6 +44,14 @@ static func _paint(img: Image, kind: String) -> void:
 			_humanoid(img, Color8(184, 172, 204), Color8(82, 72, 94), Color8(52, 46, 62), Color8(120, 90, 140))
 		"aberration":
 			_blob(img, Color8(212, 112, 60), Color8(140, 62, 40), Color8(255, 232, 120))
+		"duelliste":
+			_humanoid(img, Color8(235, 200, 165), Color8(60, 80, 120), Color8(36, 48, 78), Color8(220, 220, 235))
+		"clerc":
+			_mage(img, Color8(232, 230, 238), Color8(150, 150, 172), Color8(235, 200, 165), Color8(240, 210, 90), true, true)
+		"berserker":
+			_humanoid(img, Color8(235, 200, 165), Color8(160, 52, 46), Color8(96, 30, 28), Color8(220, 190, 70))
+		"rodeur":
+			_humanoid(img, Color8(235, 200, 165), Color8(70, 110, 70), Color8(40, 66, 42), Color8(150, 110, 70))
 		_:
 			_humanoid(img, Color8(220, 200, 170), Color8(110, 120, 160), Color8(70, 78, 110), Color8(220, 200, 120))
 

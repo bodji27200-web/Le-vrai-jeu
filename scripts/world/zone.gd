@@ -20,7 +20,7 @@ var _battle_started := false
 func _ready() -> void:
 	_zone = Game.current_zone
 	if _zone == null:
-		_zone = WorldLibrary.zones()[0]   # zone par défaut si lancée seule
+		_zone = ContentDB.zones()[0]   # zone par défaut si lancée seule
 	_build_zone()
 	_build_ui()
 	_fade_in()

@@ -11,3 +11,6 @@ extends Resource
 @export var summon_damage_mult: float = 1.0
 @export var skill_power_mult: float = 1.0      ## Multiplie les dégâts des sorts du lanceur.
 @export var mana_on_summon_death: int = 0      ## Mana gagné quand une invocation meurt.
+@export var crit_bonus: float = 0.0            ## Ajouté à la chance de critique (assassin…).
+@export var heal_power_mult: float = 1.0       ## Multiplie les soins du lanceur (prêtre lumière…).
+@export var max_health_mult: float = 1.0       ## Multiplie les PV max (specs défensives).

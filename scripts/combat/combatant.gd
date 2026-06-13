@@ -39,6 +39,7 @@ var summon_hp_mult := 1.0
 var summon_damage_mult := 1.0
 var skill_power_mult := 1.0
 var mana_on_summon_death := 0
+var heal_power_mult := 1.0              ## Renforce les soins lancés (spé de prêtre).
 
 # --- Effets de combat temporaires (IA ennemie) -------------------------------
 ## Nettoyés au DÉBUT du tour de l'unité : protègent pendant les tours adverses.
@@ -90,7 +91,13 @@ static func from_character(c: CharacterData) -> Combatant:
 	cb.defense = base.defense + growth.defense * steps
 	cb.agility = base.agility + growth.agility * steps
 	cb.crit_chance = base.crit_chance
-	cb.skills = cls.skills
+	# Seules les compétences débloquées au niveau actuel sont disponibles
+	# (socle d'arbre de progression : on apprend en montant de niveau).
+	var available: Array[SkillData] = []
+	for s in cls.skills:
+		if s != null and s.unlock_level <= lvl:
+			available.append(s)
+	cb.skills = available
 	cb.sprite_kind = cls.sprite_kind
 	cb.base_damage = c.weapon.base_damage if c.weapon != null else 5
 
@@ -101,6 +108,11 @@ static func from_character(c: CharacterData) -> Combatant:
 		cb.summon_damage_mult = spec.summon_damage_mult
 		cb.skill_power_mult = spec.skill_power_mult
 		cb.mana_on_summon_death = spec.mana_on_summon_death
+		cb.crit_chance += spec.crit_bonus
+		cb.heal_power_mult = spec.heal_power_mult
+		if spec.max_health_mult != 1.0:
+			cb.max_health = int(round(cb.max_health * spec.max_health_mult))
+			cb.health = cb.max_health
 	return cb
 
 

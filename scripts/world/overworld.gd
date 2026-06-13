@@ -14,7 +14,7 @@ var _prompt: Label
 
 
 func _ready() -> void:
-	_zones = WorldLibrary.zones()
+	_zones = ContentDB.zones()
 	_build_world()
 	_build_ui()
 	_fade_in()

@@ -81,9 +81,9 @@ func _register_defense(kind: String) -> void:
 # =============================================================================
 
 func _build_teams() -> void:
-	for c in ContentLibrary.starting_party():
+	for c in ContentDB.party():
 		_players.append(Combatant.from_character(c))
-	for e in ContentLibrary.demo_encounter():
+	for e in ContentDB.demo_encounter():
 		_enemies.append(Combatant.from_enemy(e))
 
 
@@ -196,6 +196,9 @@ func _player_turn(actor: Combatant) -> void:
 		var power := 1.0
 		var cost := 0
 		var label := "Attaque"
+		var hits := 1
+		var heal_power := 0.0
+		var ttype := GameEnums.TargetType.SINGLE_ENEMY
 		if kind == "skill":
 			var sk := actor.skills[payload]
 			# Compétence d'invocation : pas de cible ennemie, on convoque.
@@ -207,6 +210,16 @@ func _player_turn(actor: Combatant) -> void:
 			power = sk.power
 			cost = sk.mana_cost
 			label = sk.display_name
+			hits = maxi(1, sk.hits)
+			heal_power = sk.heal_power
+			ttype = sk.target_type
+
+		# Compétence de soin / soutien : cible des alliés, ne fait pas de dégâts.
+		if heal_power > 0.0:
+			var healed := await _do_heal(actor, label, cost, heal_power, ttype)
+			if not healed:
+				continue   # soin annulé : on rouvre le menu
+			break
 
 		# Le bonus de spécialisation (ex : Faucheur d'Âmes) renforce l'offensive.
 		power *= actor.skill_power_mult
@@ -230,11 +243,21 @@ func _player_turn(actor: Combatant) -> void:
 			actor.spend_mana(cost)
 
 		_clear_actions()
-		var actor_view: CombatantView = _views[actor]
+		await _do_player_attack(actor, target, power, label, hits)
+		break
+
+	_clear_actions()
+
+
+## Exécute l'attaque du joueur. `hits` > 1 = combo multi-frappes (duelliste, salve).
+func _do_player_attack(actor: Combatant, target: Combatant, power: float, label: String, hits: int) -> void:
+	var actor_view: CombatantView = _views[actor]
+	for h in maxi(1, hits):
+		if not target.is_alive():
+			break
 		var target_view: CombatantView = _views[target]
 		actor_view.play_attack(target_view.home)
 		await get_tree().create_timer(CombatantView.WINDUP + CombatantView.STRIKE).timeout
-
 		var dmg: Dictionary = CombatResolver.attack_damage(actor, target, power)
 		target.take_damage(dmg.damage)
 		target_view.play_hit()
@@ -242,12 +265,50 @@ func _player_turn(actor: Combatant) -> void:
 		if dmg.crit:
 			await _hitstop()
 		var crit_txt := " [color=orange]CRITIQUE ![/color]" if dmg.crit else ""
-		_log("%s utilise [b]%s[/b] sur %s : [color=red]%d[/color]%s" % [actor.display_name, label, target.display_name, dmg.damage, crit_txt])
+		var hit_txt := " [color=gray](%d/%d)[/color]" % [h + 1, hits] if hits > 1 else ""
+		_log("%s utilise [b]%s[/b] sur %s : [color=red]%d[/color]%s%s" % [actor.display_name, label, target.display_name, dmg.damage, crit_txt, hit_txt])
+		_refresh_ui()
 		if not target.is_alive():
 			target_view.set_dead()
-		break
+			break
+		if hits > 1:
+			await get_tree().create_timer(0.18).timeout
 
+
+## Exécute un soin. Retourne false si le joueur annule (menu rouvert sans coût).
+func _do_heal(actor: Combatant, label: String, cost: int, heal_power: float, ttype: GameEnums.TargetType) -> bool:
+	var allies := _alive(_player_allies())
+	var targets: Array = []
+	match ttype:
+		GameEnums.TargetType.SELF:
+			targets = [actor]
+		GameEnums.TargetType.ALL_ALLIES:
+			targets = allies
+		_:   # SINGLE_ALLY (et repli pour les autres types)
+			if allies.size() <= 1:
+				targets = [actor]
+			else:
+				var chosen := await _pick_ally(allies)
+				if chosen == null:
+					return false
+				targets = [chosen]
+
+	if cost > 0:
+		actor.spend_mana(cost)
 	_clear_actions()
+	# Bref temps d'incantation (pas d'animation de charge pour rester sobre).
+	await get_tree().create_timer(0.25).timeout
+
+	var amount := CombatResolver.heal_amount(actor, heal_power)
+	for t in targets:
+		t.heal(amount)
+		_spawn_spark(_views[t], Color(0.6, 1.0, 0.7))
+		_spawn_damage(_views[t], "+%d" % amount, Color(0.55, 1.0, 0.6), targets.size() == 1)
+	_camera.add_trauma(0.15)
+	var group_txt := " [color=gray](groupe)[/color]" if targets.size() > 1 else ""
+	_log("%s lance [b]%s[/b] : [color=lime]+%d PV[/color]%s" % [actor.display_name, label, amount, group_txt])
+	_refresh_ui()
+	return true
 
 
 func _pick_target(targets: Array) -> Combatant:
@@ -258,6 +319,18 @@ func _pick_target(targets: Array) -> Combatant:
 		btn.pressed.connect(func() -> void: _ui_action.emit("target", t), CONNECT_ONE_SHOT)
 	var cancel := _add_action_button("Annuler")
 	cancel.pressed.connect(func() -> void: _ui_action.emit("target", null), CONNECT_ONE_SHOT)
+	var result: Array = await _ui_action
+	return result[1]
+
+
+func _pick_ally(allies: Array) -> Combatant:
+	_set_status("Choisis un allié à soigner")
+	_clear_actions()
+	for t in allies:
+		var btn := _add_action_button("%s\n%d/%d PV" % [t.display_name, t.health, t.max_health])
+		btn.pressed.connect(func() -> void: _ui_action.emit("ally", t), CONNECT_ONE_SHOT)
+	var cancel := _add_action_button("Annuler")
+	cancel.pressed.connect(func() -> void: _ui_action.emit("ally", null), CONNECT_ONE_SHOT)
 	var result: Array = await _ui_action
 	return result[1]
 

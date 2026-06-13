@@ -161,6 +161,7 @@ Scène principale = `scenes/overworld.tscn` (le combat se lance depuis une zone)
 & $godot --headless --path . --quit-after 90 # smoke test runtime (overworld)
 & $godot --headless --path . res://scenes/battle.tscn --quit-after 90  # tester une scène précise
 & $godot --headless --path . --script res://tests/smoke_logic.gd  # test logique (sans UI)
+& $godot --headless --path . --script res://tools/generate_content.gd  # (re)générer les .tres éditables
 ```
 Pour jouer : ouvrir le projet dans l'éditeur et lancer (F5).
 En jeu : choisir une action ; au tour du boss, presser `ESPACE`/`MAJ` quand le
@@ -170,13 +171,26 @@ curseur du télégraphe atteint la zone bleue.
 
 Construire dans cet ordre, un système à la fois, en testant avant d'enchaîner :
 
-1. **Migration contenu → `.tres`** : remplacer `content_library.gd` par des
-   ressources éditables dans l'inspecteur (la structure data le permet déjà).
-   *(Toujours à faire — reporté pour ne pas casser un build qui tourne.)*
+1. **Migration contenu → `.tres`** : ✅ FAIT (sans casse). `ContentDB`
+   (`scripts/content/content_db.gd`) est le point d'accès unique : il charge les
+   `.tres` éditables de `content/` s'ils existent, sinon retombe sur les builders
+   code (`ContentLibrary`/`WorldLibrary`) avec un avertissement → le build tourne
+   toujours. `.tres` générés par `tools/generate_content.gd` (via `ResourceSaver`,
+   donc garantis valides) : `content/party.tres`, `encounter_demo.tres`,
+   `world.tres` + conteneurs `PartyData`/`EncounterData`/`WorldData`. Voir
+   `content/README.md`. Reste : éclater en `.tres` plus granulaires si besoin
+   (une classe/un ennemi par fichier) et brancher une UI d'édition en jeu.
 2. **Classes profondes** (~10) : arbres de compétences + spécialisations qui
-   changent réellement le gameplay. ✅ FAIT pour le **Nécromancien** (invocations
-   max 2 aux rôles distincts + 2 spécialisations). Reste : ~9 autres classes,
-   et de vrais arbres de compétences (UI de progression).
+   changent réellement le gameplay. ✅ FAIT pour le **Nécromancien** (invocations)
+   et 6 autres classes : **Gardien, Pyromancien, Duelliste, Clerc, Berserker,
+   Rôdeur** (7 au catalogue via `ContentLibrary.all_classes()`), chacune avec 2
+   spécialisations qui changent le jeu. Mécaniques ajoutées : compétences
+   **multi-frappes** (`SkillData.hits`), **soins** ciblés/de groupe
+   (`heal_power` + `target_type` SELF/SINGLE_ALLY/ALL_ALLIES, calcul pur
+   `CombatResolver.heal_amount`), **déblocage par niveau** (`unlock_level`, socle
+   d'arbre), et specs étendues (`crit_bonus`, `heal_power_mult`, `max_health_mult`).
+   Reste : ~3 autres classes, une vraie **UI d'arbre de progression** et la
+   sélection d'équipe (le combat utilise toujours le trio de démo, 3 slots).
 3. **IA ennemie par archétype** : ✅ FAIT (`EnemyBrain` : agressif/défensif/
    opportuniste/protecteur/manipulateur réagissant à la situation + groupe de 3
    ennemis de démo). Reste : plus d'archétypes/comportements, réactions à l'échec.

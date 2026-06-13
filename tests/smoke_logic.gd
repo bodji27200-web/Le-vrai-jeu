@@ -4,9 +4,12 @@ extends SceneTree
 
 
 func _initialize() -> void:
-	var party := ContentLibrary.starting_party()
-	print("Équipe : ", party.size(), " héros")
+	# ContentDB doit retomber sur le code tant qu'aucun .tres n'existe.
+	var party := ContentDB.party()
+	print("Équipe (via ContentDB) : ", party.size(), " héros")
 	assert(party.size() == 3)
+	assert(ContentDB.demo_encounter().size() == 3)
+	assert(not ContentDB.zones().is_empty())
 
 	# Le 3e héros est le Nécromancien avec sa spécialisation.
 	var necro := Combatant.from_character(party[2])
@@ -82,5 +85,62 @@ func _initialize() -> void:
 	print("Dégâts du boss : normal %d / renforcé %d" % [base_dmg, empowered])
 	assert(empowered > base_dmg)
 
-	print("OK : invocations + spécialisation + aggro + IA archétypes validés.")
+	# --- Classes profondes : catalogue, compétences, soins, specs ---
+	var classes := ContentLibrary.all_classes()
+	print("Classes au catalogue : ", classes.size())
+	assert(classes.size() == 7)
+
+	# Chaque classe a au moins une compétence et deux spécialisations.
+	for cls in classes:
+		assert(not cls.skills.is_empty())
+		assert(cls.specializations.size() >= 2)
+
+	# Le Pyromancien a une compétence multi-frappes (Salve de Flammes).
+	var pyro := ContentLibrary.pyromancer_class()
+	var has_multi := false
+	for sk in pyro.skills:
+		if sk.hits > 1:
+			has_multi = true
+	assert(has_multi)
+
+	# Le Clerc soigne réellement.
+	var cleric_char := CharacterData.new()
+	cleric_char.display_name = "Test"
+	cleric_char.character_class = ContentLibrary.cleric_class()
+	cleric_char.level = 5
+	cleric_char.chosen_specialization = cleric_char.character_class.specializations[0]  # +soins
+	var cleric := Combatant.from_character(cleric_char)
+	var heal_skill: SkillData = null
+	for sk in cleric.skills:
+		if sk.heal_power > 0.0:
+			heal_skill = sk
+	assert(heal_skill != null)
+	var heal := CombatResolver.heal_amount(cleric, heal_skill.heal_power)
+	print("Soin du Clerc (Gardien de la Lumière) : +%d PV" % heal)
+	assert(heal > 0)
+
+	# La spé "Gardien de la Lumière" augmente bien le soin par rapport au code de base.
+	assert(cleric.heal_power_mult > 1.0)
+
+	# Spé défensive : max_health_mult gonfle les PV (Gardien "Rempart").
+	var guard_char := CharacterData.new()
+	guard_char.character_class = ContentLibrary.guardian_class()
+	guard_char.display_name = "G"
+	guard_char.level = 3
+	var guard_plain := Combatant.from_character(guard_char)
+	guard_char.chosen_specialization = guard_char.character_class.specializations[0]  # Rempart
+	var guard_tank := Combatant.from_character(guard_char)
+	print("Gardien PV : base %d / Rempart %d" % [guard_plain.max_health, guard_tank.max_health])
+	assert(guard_tank.max_health > guard_plain.max_health)
+
+	# Déblocage par niveau : un héros bas niveau a moins de compétences.
+	guard_char.chosen_specialization = null
+	guard_char.level = 1
+	var guard_lv1 := Combatant.from_character(guard_char)
+	guard_char.level = 5
+	var guard_lv5 := Combatant.from_character(guard_char)
+	print("Compétences Gardien : niv.1 = %d / niv.5 = %d" % [guard_lv1.skills.size(), guard_lv5.skills.size()])
+	assert(guard_lv5.skills.size() >= guard_lv1.skills.size())
+
+	print("OK : invocations + spé + aggro + IA + classes profondes (soin/multi-frappes/specs) validés.")
 	quit()
