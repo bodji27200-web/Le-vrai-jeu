@@ -37,13 +37,13 @@ static func enemy_aggression_scale() -> float:
 static func enemy_damage_scale() -> float:
 	match difficulty:
 		GameEnums.Difficulty.EASY:
-			return 0.85
+			return 0.80
 		GameEnums.Difficulty.NORMAL:
-			return 1.0
+			return 1.30   # un coup encaissé fait vraiment mal
 		GameEnums.Difficulty.HARD:
-			return 1.0
+			return 1.55
 		GameEnums.Difficulty.HARDCORE:
-			return 1.0
+			return 1.85
 	return 1.0
 
 ## Échelle des PV ennemis (combats plus longs = plus d'occasions de se faire toucher).
@@ -52,11 +52,11 @@ static func enemy_health_scale() -> float:
 		GameEnums.Difficulty.EASY:
 			return 0.85
 		GameEnums.Difficulty.NORMAL:
-			return 1.0
+			return 1.20
 		GameEnums.Difficulty.HARD:
-			return 1.0
+			return 1.35
 		GameEnums.Difficulty.HARDCORE:
-			return 1.0
+			return 1.55
 	return 1.0
 
 static func difficulty_name() -> String:

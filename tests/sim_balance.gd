@@ -6,7 +6,7 @@
 extends SceneTree
 
 const ROUNDS_CAP := 60
-const N := 1500
+const N := 600
 
 # Profils de skill du joueur : (parade, esquive) avant ajustement par difficulté.
 const PROFILES := {
