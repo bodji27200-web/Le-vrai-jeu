@@ -21,7 +21,7 @@ var _dialogue: Label
 var _npcs := [
 	{
 		"name": "Maugrim, l'aubergiste",
-		"pos": Vector2(-250, -120), "color": Color(0.80, 0.55, 0.35), "action": "dialogue",
+		"pos": Vector2(-250, -120), "color": Color(0.80, 0.55, 0.35), "action": "dialogue", "sprite": "pnj_aubergiste",
 		"lines": [
 			"Bienvenue à l'auberge, voyageur. Pose tes armes un instant.",
 			"On raconte que des bandits rôdent dans la Clairière, à l'ouest…",
@@ -30,19 +30,19 @@ var _npcs := [
 	},
 	{
 		"name": "Brontë, la forgeronne",
-		"pos": Vector2(150, -90), "color": Color(0.7, 0.4, 0.3), "action": "forge",
+		"pos": Vector2(150, -90), "color": Color(0.7, 0.4, 0.3), "action": "forge", "sprite": "pnj_forgeronne",
 		"lines": ["Besoin d'équiper ton groupe ? Montre-moi ce que tu as ramassé."],
 		"i": 0,
 	},
 	{
 		"name": "Selene, la marchande",
-		"pos": Vector2(60, 160), "color": Color(0.45, 0.6, 0.8), "action": "shop",
+		"pos": Vector2(60, 160), "color": Color(0.45, 0.6, 0.8), "action": "shop", "sprite": "pnj_marchande",
 		"lines": ["Or en poche ? J'ai justement quelques lames de qualité…"],
 		"i": 0,
 	},
 	{
 		"name": "Un ivrogne avachi",
-		"pos": Vector2(-180, 120), "color": Color(0.6, 0.5, 0.45), "action": "dialogue",
+		"pos": Vector2(-180, 120), "color": Color(0.6, 0.5, 0.45), "action": "dialogue", "sprite": "pnj_ivrogne",
 		"lines": [
 			"*hips* … le dragon… il était GRAND comme ça… *ronfle*",
 			"Laisse-moi… encore cinq minutes…",
@@ -50,7 +50,7 @@ var _npcs := [
 	},
 	{
 		"name": "Vieux Cadoc",
-		"pos": Vector2(350, 60), "color": Color(0.55, 0.55, 0.6), "action": "dialogue",
+		"pos": Vector2(350, 60), "color": Color(0.55, 0.55, 0.6), "action": "dialogue", "sprite": "pnj_ancien",
 		"lines": [
 			"Plus tu combats, plus tu apprends. La force vient avec le temps.",
 			"Au niveau 5, un héros trouve sa voie — sa spécialisation.",
@@ -124,12 +124,19 @@ func _unhandled_input(event: InputEvent) -> void:
 func _build_village() -> void:
 	var base_col: Color = _zone.theme_color if _zone != null else Color(0.62, 0.5, 0.34)
 
-	# Sol isométrique (terre/herbe du hameau) + fond.
+	# Sol isométrique (terre/herbe du hameau) + fond, lumière chaude de fin de jour.
 	var stage := WorldStage.new()
 	stage.bounds = ZONE_BOUNDS
 	stage.ground = base_col.darkened(0.05)
-	stage.sky_top = Color(0.12, 0.13, 0.20)
+	stage.sky_top = Color(0.20, 0.15, 0.18)
+	stage.sun = Color(1.0, 0.74, 0.42)            # soleil couchant
+	stage.sun_at = Vector2(0.7, 0.18)
 	add_child(stage)
+
+	# Teinte ambiante : crépuscule doré et chaleureux.
+	var ambient := CanvasModulate.new()
+	ambient.color = Color(1.0, 0.88, 0.74)
+	add_child(ambient)
 
 	# Conteneur trié en profondeur.
 	_world = Node2D.new()
@@ -146,11 +153,23 @@ func _build_village() -> void:
 	var tavern := WorldStage.house(1.35, Color(0.5, 0.34, 0.22), true)
 	tavern.position = Vector2(-250, -40)
 	_world.add_child(tavern)
+	# Halos chauds aux fenêtres de la taverne + braises montantes (cheminée).
+	for off in [Vector2(-60, -110), Vector2(36, -110)]:
+		var win := WorldStage.glow(Color(1.0, 0.7, 0.3, 0.9), 70.0)
+		win.position = tavern.position + off
+		add_child(win)
+	var embers := WorldStage.ambiance(26, Color(1.0, 0.6, 0.25, 0.9), Vector2(60, 30), -28.0, 3.2)
+	embers.position = tavern.position + Vector2(0, -150)
+	add_child(embers)
 	# Un peu de verdure pour habiller.
 	for b in [Vector2(-520, 120), Vector2(470, 150), Vector2(60, 320), Vector2(-420, -300)]:
 		var bush := WorldStage.bush(1.1, base_col.lightened(0.2))
 		bush.position = b
 		_world.add_child(bush)
+	for g in [Vector2(-600, 40), Vector2(520, -40), Vector2(-80, 360), Vector2(300, 280), Vector2(-360, 320)]:
+		var tuft := WorldStage.grass(1.2, base_col.lightened(0.28))
+		tuft.position = g
+		_world.add_child(tuft)
 
 	# Sortie.
 	_add_marker(EXIT_POS, Color(0.5, 0.8, 1.0), "Sortie")
@@ -177,15 +196,18 @@ func _add_npc(npc: Dictionary) -> void:
 	var node := Node2D.new()
 	node.position = npc.pos
 	_world.add_child(node)
-	node.add_child(WorldStage._shadow(22, 9))
-	var body := Polygon2D.new()
-	body.polygon = PackedVector2Array([Vector2(-12, -34), Vector2(12, -34), Vector2(14, 2), Vector2(-14, 2)])
-	body.color = npc.color
+	node.add_child(WorldStage._shadow(24, 9))
+	# Vrai sprite pixel art (pieds au sol). Conteneur animé pour le balancement idle.
+	var body := Node2D.new()
 	node.add_child(body)
-	var head := Polygon2D.new()
-	head.polygon = PackedVector2Array([Vector2(-9, -52), Vector2(9, -52), Vector2(9, -34), Vector2(-9, -34)])
-	head.color = Color(0.95, 0.82, 0.68)
-	node.add_child(head)
+	var spr := Sprite2D.new()
+	spr.texture = PixelArt.for_unit(npc.get("sprite", ""))
+	spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	var size := Vector2(46, 62)
+	var sc := size.y / float(spr.texture.get_height())
+	spr.scale = Vector2(sc, sc)
+	spr.position = Vector2(0, -size.y * 0.5)   # pieds à l'origine (tri en profondeur)
+	body.add_child(spr)
 	var lbl := Label.new()
 	lbl.text = npc.name
 	lbl.add_theme_font_size_override("font_size", 15)
@@ -228,6 +250,8 @@ func _add_marker(pos: Vector2, color: Color, label: String) -> void:
 func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
+	# Vignette douce (sous le texte).
+	layer.add_child(WorldStage.vignette(0.45))
 
 	var title := Label.new()
 	title.text = _zone.display_name if _zone != null else "Village"

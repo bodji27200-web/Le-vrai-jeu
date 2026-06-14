@@ -67,7 +67,14 @@ func _build_zone() -> void:
 	stage.bounds = ZONE_BOUNDS
 	stage.ground = theme
 	stage.sky_top = theme.darkened(0.72)
+	stage.sun = Color(0.85, 0.95, 0.7)            # lumière filtrée par la canopée
+	stage.sun_at = Vector2(0.32, 0.14)
 	add_child(stage)
+
+	# Teinte ambiante : sous-bois frais et vert.
+	var ambient := CanvasModulate.new()
+	ambient.color = Color(0.82, 0.92, 0.86)
+	add_child(ambient)
 
 	# Conteneur trié en profondeur.
 	_world = Node2D.new()
@@ -127,16 +134,27 @@ func _build_zone() -> void:
 		var sc := rng.randf_range(0.8, 1.35)
 		var roll := rng.randf()
 		var deco: Node2D
-		if roll < 0.50:
+		if roll < 0.42:
 			deco = WorldStage.tree(sc, theme.lightened(0.12))
-		elif roll < 0.78:
+		elif roll < 0.66:
 			deco = WorldStage.pine(sc)
-		elif roll < 0.90:
+		elif roll < 0.80:
 			deco = WorldStage.bush(sc, theme.lightened(0.16))
+		elif roll < 0.90:
+			deco = WorldStage.grass(rng.randf_range(0.9, 1.6), theme.lightened(0.22))
+		elif roll < 0.96:
+			deco = WorldStage.flower(rng.randf_range(0.8, 1.3),
+				[Color(0.95, 0.85, 0.4), Color(0.85, 0.5, 0.8), Color(0.9, 0.95, 0.95)][rng.randi() % 3])
 		else:
 			deco = WorldStage.rock(sc)
 		deco.position = p
 		_world.add_child(deco)
+
+	# Lucioles / spores flottantes (ambiance forestière), au-dessus du décor.
+	var motes := WorldStage.ambiance(60, Color(0.85, 1.0, 0.7, 0.9),
+		Vector2(ZONE_BOUNDS.size.x * 0.5, ZONE_BOUNDS.size.y * 0.5), -10.0, 6.0)
+	motes.position = ZONE_BOUNDS.position + ZONE_BOUNDS.size * 0.5
+	add_child(motes)
 
 	# Joueur (au-dessus du sol, trié avec le décor).
 	_player = PlayerAvatar.new()
@@ -156,6 +174,10 @@ func _add_marker(pos: Vector2, color: Color, label: String) -> void:
 	var node := Node2D.new()
 	node.position = pos
 	_world.add_child(node)
+	# Halo lumineux au sol (additif) pour un repère qui "rayonne".
+	var halo := WorldStage.glow(Color(color.r, color.g, color.b, 0.7), 90.0)
+	halo.position = Vector2(0, -8)
+	node.add_child(halo)
 	# Halo au sol + pilier lumineux (lisible en iso).
 	var ring := Polygon2D.new()
 	ring.polygon = PackedVector2Array([Vector2(0, -16), Vector2(34, 0), Vector2(0, 16), Vector2(-34, 0)])
@@ -179,6 +201,8 @@ func _add_marker(pos: Vector2, color: Color, label: String) -> void:
 func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
+	# Vignette (assombrit les bords) — posée en premier pour rester sous le texte.
+	layer.add_child(WorldStage.vignette(0.5))
 	var title := Label.new()
 	title.text = _zone.display_name
 	title.add_theme_font_size_override("font_size", 30)
