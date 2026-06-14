@@ -15,7 +15,7 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ESCAPE:
-			Game.goto_overworld()
+			Game.leave_menu()
 
 
 func _build_ui() -> void:
@@ -27,6 +27,7 @@ func _build_ui() -> void:
 	add_child(bg)
 
 	var title := _label("Boutique de Selene", 30)
+	title.add_theme_color_override("font_color", Color(0.86, 0.74, 0.42))
 	title.position = Vector2(28, 18)
 	add_child(title)
 
@@ -54,7 +55,7 @@ func _build_ui() -> void:
 	back.text = "Sortir"
 	back.custom_minimum_size = Vector2(160, 44)
 	back.position = Vector2(30, 588)
-	back.pressed.connect(Game.goto_overworld)
+	back.pressed.connect(Game.leave_menu)
 	add_child(back)
 
 

@@ -69,7 +69,9 @@ func _refresh() -> void:
 	var spec_name: String = _cd.chosen_specialization.display_name if _cd.chosen_specialization != null else "—"
 
 	# En-tête.
-	_box.add_child(_label("%s — %s" % [_cd.display_name, cls_name], 28))
+	var hdr := _label("%s — %s" % [_cd.display_name, cls_name], 28)
+	hdr.add_theme_color_override("font_color", Color(0.86, 0.74, 0.42))
+	_box.add_child(hdr)
 	var next_xp := Progression.xp_for_next(_cd.level)
 	var xp_txt := "%d / %d" % [_cd.xp, next_xp] if next_xp > 0 else "MAX"
 	_box.add_child(_label("Niveau %d   ·   XP %s   ·   Spécialisation : %s" % [_cd.level, xp_txt, spec_name], 16))

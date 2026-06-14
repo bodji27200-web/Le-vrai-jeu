@@ -32,6 +32,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		# Composition d'équipe : accessible depuis n'importe où sur la carte.
 		if event.keycode == KEY_P:
+			Game.menu_origin = "overworld"
 			Game.goto_party_select()
 			return
 		if _near != null and event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_E]:

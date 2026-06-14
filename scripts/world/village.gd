@@ -108,8 +108,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif not _near_npc.is_empty():
 		match _near_npc.action:
 			"forge":
+				Game.menu_origin = "village"
 				Game.goto_party_select()
 			"shop":
+				Game.menu_origin = "village"
 				Game.goto_shop()
 			_:
 				var lines: Array = _near_npc.lines

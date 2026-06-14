@@ -34,7 +34,9 @@ func _build_ui() -> void:
 	_box.add_theme_constant_override("separation", 14)
 	panel.add_child(_box)
 
-	_box.add_child(_label(_ev.get("title", "Événement"), 28))
+	var ev_title := _label(_ev.get("title", "Événement"), 28)
+	ev_title.add_theme_color_override("font_color", Color(0.86, 0.74, 0.42))
+	_box.add_child(ev_title)
 	var txt := _label(_ev.get("text", ""), 18)
 	txt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	txt.custom_minimum_size = Vector2(760, 0)
@@ -65,7 +67,9 @@ func _on_choice(choice: Dictionary) -> void:
 	# Affiche la réponse + un bouton pour continuer.
 	for c in _box.get_children():
 		c.queue_free()
-	_box.add_child(_label(_ev.get("title", "Événement"), 28))
+	var ev_title := _label(_ev.get("title", "Événement"), 28)
+	ev_title.add_theme_color_override("font_color", Color(0.86, 0.74, 0.42))
+	_box.add_child(ev_title)
 	var reply := _label(choice.get("reply", ""), 19)
 	reply.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	reply.custom_minimum_size = Vector2(760, 0)

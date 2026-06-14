@@ -52,7 +52,9 @@ func _build_ui() -> void:
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 
-	add_child(_titled(_label("Équipe & compétences", 30), Vector2(28, 18)))
+	var screen_title := _label("Équipe & compétences", 30)
+	screen_title.add_theme_color_override("font_color", Color(0.86, 0.74, 0.42))
+	add_child(_titled(screen_title, Vector2(28, 18)))
 	var help := _label("Ajoute des classes, intègre tes compagnons (réserve), équipe ton butin. Spé au niveau %d. Échap : valider." % Progression.SPEC_UNLOCK_LEVEL, 15)
 	help.modulate = Color(1, 1, 1, 0.7)
 	help.position = Vector2(30, 56)
@@ -379,7 +381,7 @@ func _new_game() -> void:
 
 func _confirm() -> void:
 	_commit()
-	Game.goto_overworld()
+	Game.leave_menu()
 
 
 # --- Utilitaires -------------------------------------------------------------

@@ -134,6 +134,17 @@ func goto_title() -> void:
 	_change("res://scenes/title.tscn")
 
 
+## D'où a-t-on ouvert un écran de menu (équipe/boutique/fiche) : "overworld" ou
+## "village". Permet d'y revenir au bon endroit.
+var menu_origin := "overworld"
+
+func leave_menu() -> void:
+	if menu_origin == "village":
+		_change("res://scenes/village.tscn")
+	else:
+		_change("res://scenes/overworld.tscn")
+
+
 ## Ouvre l'écran de composition d'équipe (classes + spécialisation + niveau).
 func goto_party_select() -> void:
 	_change("res://scenes/party_select.tscn")
