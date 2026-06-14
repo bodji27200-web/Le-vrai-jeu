@@ -15,21 +15,13 @@ run/main_scene="res://scenes/overworld.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
-[display]
-
-; Résolution de base fixe + étirement uniforme : le jeu se rend toujours en
-; 1152x648 puis est mis à l'échelle pour remplir l'écran (avec bandes noires si
-; besoin). Corrige le décalage des persos sur le web (caméra/décor et positions
-; fixes enfin alignés) ET allège le GPU (rendu en 1152x648 au lieu du plein
-; écran Xbox).
-window/size/viewport_width=1152
-window/size/viewport_height=648
-window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
-
 [autoload]
 
 Game="*uid://cak4vs1t18duh"
+
+[display]
+
+window/stretch/mode="canvas_items"
 
 [physics]
 
