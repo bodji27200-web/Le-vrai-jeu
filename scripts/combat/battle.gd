@@ -16,13 +16,14 @@ const PARRY_MANA_GAIN := 1   ## Volontairement modeste (équilibrage).
 const PARRY_SLOWMO := 0.45   ## Ralenti juste avant le contact (la parade = un instant).
 const STRIKE_FAST := 0.12    ## Part de l'élan jouée à vitesse normale avant le ralenti.
 
-# --- Placement sur le champ de bataille ---------------------------------------
-# Formation NATURELLE (pas une colonne) : les héros en triangle, meneur avancé ;
-# les ennemis groupés en face, le boss avancé et imposant. Composition lisible
-# en iso + tri en profondeur (y-sort).
-const HERO_POS := [Vector2(380, 392), Vector2(248, 300), Vector2(258, 484)]
-const SUMMON_POS := [Vector2(170, 348), Vector2(170, 452)]   ## Max 2 invocations.
-const ENEMY_SLOTS := [Vector2(852, 384), Vector2(968, 276), Vector2(958, 492)]
+# --- Placement sur le champ de bataille (composition en PROFONDEUR) -----------
+# Vue cinématique façon Clair Obscur en 2D : les HÉROS au PREMIER PLAN (bas, gros,
+# proches caméra), les ENNEMIS/BOSS AU FOND (haut, imposants). L'attaque ennemie
+# descend du fond vers le premier plan (= vers la caméra/le joueur). Tri en
+# profondeur (y-sort) → le premier plan occulte le fond.
+const HERO_POS := [Vector2(576, 514), Vector2(404, 486), Vector2(748, 486)]
+const SUMMON_POS := [Vector2(250, 506), Vector2(902, 506)]   ## Max 2 invocations.
+const ENEMY_SLOTS := [Vector2(576, 248), Vector2(404, 212), Vector2(748, 212)]
 
 # --- État du combat ----------------------------------------------------------
 var _players: Array[Combatant] = []    ## Les héros (déterminent victoire/défaite).
@@ -90,14 +91,23 @@ func _exit_tree() -> void:
 ## Construit la pile de rendu : décor isométrique (fond), terrain trié en
 ## profondeur (y-sort), puis FX par-dessus.
 func _build_stage() -> void:
+	var screen := get_viewport_rect().size
+
+	# Arrière-plan LOINTAIN en parallaxe (derrière tout) : il dérive plus lentement
+	# que le champ de bataille quand la caméra bouge → profondeur.
+	var pbg := ParallaxBackground.new()
+	pbg.layer = -1
+	add_child(pbg)
+	var pl := ParallaxLayer.new()
+	pl.motion_scale = Vector2(0.35, 0.45)
+	pbg.add_child(pl)
+	var backdrop := BattleBackdrop.new()
+	backdrop.screen = screen
+	pl.add_child(backdrop)
+
+	# Sol en perspective (monde : suit la caméra). Le 1er plan (bas) occulte le fond.
 	_stage = BattleStage.new()
-	_stage.screen = get_viewport_rect().size
-	# Sol dimensionné et centré pour contenir TOUS les emplacements (héros,
-	# invocations, ennemis) avec marge : sinon les unités du haut/gauche
-	# débordaient du losange. Coordonnées en repère de base 1152x648 (l'étirement
-	# canvas_items garde get_viewport_rect() à cette taille).
-	_stage.floor_center = Vector2(560, 380)
-	_stage.floor_half = Vector2(760, 330)
+	_stage.screen = screen
 	add_child(_stage)
 
 	_field = Node2D.new()
@@ -150,26 +160,28 @@ func _build_views() -> void:
 	for i in _players.size():
 		var v := CombatantView.new()
 		_field.add_child(v)
-		v.setup(_players[i].display_name, _players[i].sprite_kind, Vector2(82, 122), false, Color(0.6, 0.6, 0.65), _players[i].weapon_kind)
+		# Héros au PREMIER PLAN : gros (proches caméra).
+		v.setup(_players[i].display_name, _players[i].sprite_kind, Vector2(98, 144), false, Color(0.6, 0.6, 0.65), _players[i].weapon_kind)
 		v.set_home(HERO_POS[i])
 		_views[_players[i]] = v
 	for i in _enemies.size():
 		var e := _enemies[i]
 		var ev := CombatantView.new()
 		_field.add_child(ev)
-		# Présence : boss massif, sbires déjà plus imposants qu'avant.
-		var size := Vector2(140, 196) if e.is_boss else Vector2(92, 132)
+		# AU FOND : le boss est MASSIF (imposant malgré l'éloignement) ; les sbires
+		# un peu plus petits que les héros (perspective : ils sont plus loin).
+		var size := Vector2(196, 272) if e.is_boss else Vector2(84, 118)
 		ev.setup(e.display_name, e.sprite_kind, size, true)
-		ev.set_home(ENEMY_SLOTS[i] if i < ENEMY_SLOTS.size() else Vector2(880, 384))
+		ev.set_home(ENEMY_SLOTS[i] if i < ENEMY_SLOTS.size() else Vector2(576, 220))
 		_views[e] = ev
 
-	# Caméra : plan plus PROCHE (favorise les personnages), recentrée sur le cœur
-	# de l'action. Le HUD reste stable (CanvasLayer).
+	# Caméra : plan d'établissement qui montre la PROFONDEUR (héros au 1er plan en
+	# bas, ennemis au fond en haut). Le focus par attaque rapproche ensuite.
 	_camera = BattleCamera.new()
-	_camera.zoom = Vector2(1.18, 1.18)
+	_camera.zoom = Vector2(1.02, 1.02)
 	add_child(_camera)
-	_camera.position = Vector2(600, 372)
-	_camera.base_position = _camera.position   # plan large de référence pour reset_view
+	_camera.position = Vector2(576, 340)
+	_camera.base_position = _camera.position   # plan d'établissement de référence
 
 
 func _all() -> Array:
@@ -649,7 +661,7 @@ func _do_summon(master: Combatant, data: SummonData) -> void:
 
 	var v := CombatantView.new()
 	_field.add_child(v)
-	v.setup(summon.display_name, summon.sprite_kind, Vector2(54, 80), false)
+	v.setup(summon.display_name, summon.sprite_kind, Vector2(78, 112), false)
 	v.set_home(SUMMON_POS[slot])
 	_views[summon] = v
 
