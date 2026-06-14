@@ -9,3 +9,4 @@ extends Resource
 @export var theme_color: Color = Color(0.35, 0.55, 0.4)
 @export_multiline var description: String = ""
 @export var has_encounter: bool = true                   ## Contient un combat ?
+@export var is_village: bool = false                     ## Hub habité (PNJ, forgeron…) au lieu d'une zone de combat.

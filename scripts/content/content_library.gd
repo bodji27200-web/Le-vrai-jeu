@@ -386,8 +386,67 @@ static func all_classes() -> Array[ClassData]:
 ## Construit un héros jouable à partir d'une classe (niveau 1, sans spé par
 ## défaut : tout se gagne en jouant). Donne une arme correcte.
 static func make_member(name: String, cls: ClassData, spec: SpecializationData = null, level: int = 1) -> CharacterData:
-	var w := _weapon("Arme de %s" % cls.display_name, 9, GameEnums.Element.NONE, GameEnums.Rarity.RARE)
+	var w := _weapon("Arme de %s" % cls.display_name, 9, GameEnums.Element.NONE, GameEnums.Rarity.COMMON)
 	return _character(name, cls, w, level, spec)
+
+# =============================================================================
+# ARMES D'IDENTITÉ & BUTIN
+# =============================================================================
+
+## Une arme n'est pas "plus forte", elle est DIFFÉRENTE (cf. vision : l'arme est
+## une identité). Chacune pousse un style : vitesse/crit, défense, robustesse…
+static func _wpn(name: String, dmg: int, element: GameEnums.Element, rarity: GameEnums.Rarity, agi: int = 0, defe: int = 0, hp: int = 0, crit: float = 0.0, lore: String = "") -> WeaponData:
+	var w := WeaponData.new()
+	w.display_name = name
+	w.base_damage = dmg
+	w.element = element
+	w.rarity = rarity
+	w.agility_bonus = agi
+	w.defense_bonus = defe
+	w.max_health_bonus = hp
+	w.crit_bonus = crit
+	w.lore = lore
+	return w
+
+## Catalogue des armes qui peuvent tomber en butin.
+static func loot_weapons() -> Array[WeaponData]:
+	return [
+		_wpn("Lame Véloce", 8, GameEnums.Element.NONE, GameEnums.Rarity.RARE, 6, 0, 0, 0.08, "Si légère qu'elle semble danser."),
+		_wpn("Dague Sanguine", 7, GameEnums.Element.SHADOW, GameEnums.Rarity.RARE, 2, 0, 0, 0.15, "Elle a soif."),
+		_wpn("Couperet Brutal", 16, GameEnums.Element.NONE, GameEnums.Rarity.RARE, 0, 0, 0, 0.04, "Un coup, une fin."),
+		_wpn("Égide du Gardien", 9, GameEnums.Element.HOLY, GameEnums.Rarity.EPIC, 0, 8, 30, 0.0, "Un rempart fait arme."),
+		_wpn("Marteau de Granit", 14, GameEnums.Element.EARTH, GameEnums.Rarity.RARE, 0, 6, 40, 0.0, "Lourd comme la montagne."),
+		_wpn("Bâton de Givre", 8, GameEnums.Element.ICE, GameEnums.Rarity.RARE, 3, 0, 10, 0.02, "Le froid obéit."),
+		_wpn("Faux des Ombres", 12, GameEnums.Element.SHADOW, GameEnums.Rarity.EPIC, 2, 0, 0, 0.10, "La moisson des âmes."),
+		_wpn("Arc du Rôdeur", 10, GameEnums.Element.NONE, GameEnums.Rarity.RARE, 8, 0, 0, 0.05, "Le vent guide la flèche."),
+	]
+
+## Tire une arme de butin au hasard (communes plus fréquentes que les épiques).
+static func random_loot() -> WeaponData:
+	var pool := loot_weapons()
+	# Pondération simple : les épiques sont 2x plus rares.
+	var weights: Array[float] = []
+	for w in pool:
+		weights.append(0.5 if w.rarity >= GameEnums.Rarity.EPIC else 1.0)
+	var total := 0.0
+	for x in weights:
+		total += x
+	var roll := randf() * total
+	for i in pool.size():
+		roll -= weights[i]
+		if roll <= 0.0:
+			return pool[i]
+	return pool[0]
+
+## Nom lisible d'une rareté (pour l'UI).
+static func rarity_name(r: GameEnums.Rarity) -> String:
+	match r:
+		GameEnums.Rarity.COMMON: return "Commune"
+		GameEnums.Rarity.RARE: return "Rare"
+		GameEnums.Rarity.EPIC: return "Épique"
+		GameEnums.Rarity.LEGENDARY: return "Légendaire"
+		GameEnums.Rarity.UNIQUE: return "Unique"
+	return "?"
 
 # =============================================================================
 # ÉQUIPE DE DÉPART

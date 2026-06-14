@@ -7,6 +7,8 @@ var current_zone: ZoneData = null
 ## via la sauvegarde). Vide au démarrage : chargée depuis la sauvegarde si elle
 ## existe, sinon initialisée depuis le contenu (trio de démo) à la demande.
 var active_party: Array[CharacterData] = []
+## Armes non équipées récupérées en butin (persistant).
+var inventory: Array[WeaponData] = []
 
 
 ## Au lancement : charge la progression sauvegardée si elle existe.
@@ -19,6 +21,10 @@ func _ready() -> void:
 		if not loaded.is_empty():
 			active_party = loaded
 			GameSettings.difficulty = int(st.get("difficulty", GameSettings.difficulty)) as GameEnums.Difficulty
+		var inv: Array[WeaponData] = []
+		for w in st.get("inventory", []):
+			inv.append(w)
+		inventory = inv
 
 
 ## Renvoie l'équipe persistante, en l'initialisant depuis le contenu si besoin.
@@ -29,16 +35,17 @@ func get_party() -> Array[CharacterData]:
 	return active_party
 
 
-## Sauvegarde la progression actuelle (équipe + difficulté).
+## Sauvegarde la progression actuelle (équipe + difficulté + inventaire).
 func save_game() -> void:
 	if not active_party.is_empty():
-		SaveSystem.save(active_party, int(GameSettings.difficulty))
+		SaveSystem.save(active_party, int(GameSettings.difficulty), inventory)
 
 
 ## Efface la sauvegarde et repart d'une équipe de démo niveau 1.
 func reset_progress() -> void:
 	SaveSystem.delete_save()
 	active_party = []
+	inventory = []
 	get_party()
 
 
@@ -61,7 +68,10 @@ func lead_sprite_kind() -> String:
 
 func enter_zone(zone: ZoneData) -> void:
 	current_zone = zone
-	_change("res://scenes/zone.tscn")
+	if zone != null and zone.is_village:
+		_change("res://scenes/village.tscn")
+	else:
+		_change("res://scenes/zone.tscn")
 
 
 func start_battle() -> void:

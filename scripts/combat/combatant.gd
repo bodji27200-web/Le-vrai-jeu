@@ -100,7 +100,16 @@ static func from_character(c: CharacterData) -> Combatant:
 			available.append(s)
 	cb.skills = available
 	cb.sprite_kind = cls.sprite_kind
-	cb.base_damage = c.weapon.base_damage if c.weapon != null else 5
+	# Arme équipée : dégâts de base + bonus d'identité (agilité/défense/PV/crit).
+	if c.weapon != null:
+		cb.base_damage = c.weapon.base_damage
+		cb.agility += c.weapon.agility_bonus
+		cb.defense += c.weapon.defense_bonus
+		cb.max_health += c.weapon.max_health_bonus
+		cb.crit_chance += c.weapon.crit_bonus
+		cb.health = cb.max_health
+	else:
+		cb.base_damage = 5
 
 	# Application de la spécialisation choisie.
 	var spec := c.chosen_specialization

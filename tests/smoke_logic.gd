@@ -175,5 +175,31 @@ func _initialize() -> void:
 	# La récompense est bien transmise au combattant.
 	assert(Combatant.from_enemy(ContentLibrary.demo_boss()).xp_reward > 0)
 
-	print("OK : invocations + spé + aggro + IA + classes profondes + progression XP/niveaux validés.")
+	# --- Équipement : bonus d'arme appliqués + butin ---
+	var loot := ContentLibrary.loot_weapons()
+	assert(loot.size() >= 6)
+	var swift_wpn: WeaponData = null
+	for w in loot:
+		if w.agility_bonus > 0:
+			swift_wpn = w
+			break
+	assert(swift_wpn != null)
+	var eq_char := ContentLibrary.make_member("Eq", ContentLibrary.duelist_class())
+	var base_agi := Combatant.from_character(eq_char).agility
+	eq_char.weapon = swift_wpn
+	var armed := Combatant.from_character(eq_char)
+	print("Arme %s : agilité %d → %d (crit +%.2f)" % [swift_wpn.display_name, base_agi, armed.agility, swift_wpn.crit_bonus])
+	assert(armed.agility == base_agi + swift_wpn.agility_bonus)
+	assert(armed.crit_chance >= swift_wpn.crit_bonus)
+	var drop := ContentLibrary.random_loot()
+	assert(drop != null and drop.base_damage > 0)
+
+	# --- Village : un hub habité existe dans le monde ---
+	var has_village := false
+	for z in WorldLibrary.zones():
+		if z.is_village:
+			has_village = true
+	assert(has_village)
+
+	print("OK : invocations + spé + aggro + IA + classes + progression + équipement + village validés.")
 	quit()

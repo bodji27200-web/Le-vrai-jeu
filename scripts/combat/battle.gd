@@ -851,5 +851,13 @@ func _award_xp() -> void:
 			pl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
 			_end_box.add_child(pl)
 
+	# Butin : bonne chance de récupérer une arme d'identité (→ inventaire).
+	if randf() < 0.7:
+		var loot := ContentLibrary.random_loot()
+		Game.inventory.append(loot)
+		var ll := _make_label("Butin : %s (%s) — à équiper dans le menu Équipe (P)" % [loot.display_name, ContentLibrary.rarity_name(loot.rarity)], 16)
+		ll.add_theme_color_override("font_color", Color(1.0, 0.8, 0.35))
+		_end_box.add_child(ll)
+
 	# La progression est sauvegardée (persiste entre les sessions).
 	Game.save_game()

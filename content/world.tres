@@ -5,13 +5,23 @@
 
 [sub_resource type="Resource" id="Resource_hojw7"]
 script = ExtResource("2_js3fp")
+id = "hameau"
+display_name = "Hameau de l'Aube"
+overworld_position = Vector2(-120, 30)
+theme_color = Color(0.78, 0.66, 0.45, 1)
+description = "Un village paisible : taverne, forge et marché. Ton refuge."
+has_encounter = false
+is_village = true
+
+[sub_resource type="Resource" id="Resource_f3xom"]
+script = ExtResource("2_js3fp")
 id = "clairiere"
 display_name = "Clairière d'Émeraude"
 overworld_position = Vector2(-420, -150)
 theme_color = Color(0.3, 0.58, 0.35, 1)
 description = "Une forêt paisible baignée de lumière verte."
 
-[sub_resource type="Resource" id="Resource_f3xom"]
+[sub_resource type="Resource" id="Resource_hdhrg"]
 script = ExtResource("2_js3fp")
 id = "givre"
 display_name = "Cols de Givre"
@@ -19,7 +29,7 @@ overworld_position = Vector2(380, -230)
 theme_color = Color(0.55, 0.7, 0.85, 1)
 description = "Des cols enneigés balayés par le vent glacé."
 
-[sub_resource type="Resource" id="Resource_hdhrg"]
+[sub_resource type="Resource" id="Resource_qxl63"]
 script = ExtResource("2_js3fp")
 id = "marais"
 display_name = "Marais d'Ombre"
@@ -27,7 +37,7 @@ overworld_position = Vector2(-330, 250)
 theme_color = Color(0.4, 0.45, 0.3, 1)
 description = "Un marécage brumeux où rôdent les morts."
 
-[sub_resource type="Resource" id="Resource_qxl63"]
+[sub_resource type="Resource" id="Resource_t1yd2"]
 script = ExtResource("2_js3fp")
 id = "ruines"
 display_name = "Cité en Ruines"
@@ -35,7 +45,7 @@ overworld_position = Vector2(430, 210)
 theme_color = Color(0.6, 0.55, 0.45, 1)
 description = "Les vestiges d'une cité jadis glorieuse."
 
-[sub_resource type="Resource" id="Resource_t1yd2"]
+[sub_resource type="Resource" id="Resource_74r17"]
 script = ExtResource("2_js3fp")
 id = "sanctuaire"
 display_name = "Sanctuaire Oublié"
@@ -46,4 +56,4 @@ has_encounter = false
 
 [resource]
 script = ExtResource("1_woyh5")
-zones = Array[ExtResource("2_js3fp")]([SubResource("Resource_hojw7"), SubResource("Resource_f3xom"), SubResource("Resource_hdhrg"), SubResource("Resource_qxl63"), SubResource("Resource_t1yd2")])
+zones = Array[ExtResource("2_js3fp")]([SubResource("Resource_hojw7"), SubResource("Resource_f3xom"), SubResource("Resource_hdhrg"), SubResource("Resource_qxl63"), SubResource("Resource_t1yd2"), SubResource("Resource_74r17")])

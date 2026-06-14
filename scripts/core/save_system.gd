@@ -17,8 +17,8 @@ static func delete_save() -> void:
 		DirAccess.remove_absolute(SAVE_PATH)
 
 
-## Écrit l'état complet (équipe + difficulté).
-static func save(party: Array[CharacterData], difficulty: int) -> void:
+## Écrit l'état complet (équipe + difficulté + inventaire).
+static func save(party: Array[CharacterData], difficulty: int, inventory: Array[WeaponData] = []) -> void:
 	var entries: Array = []
 	for cd in party:
 		if cd == null or cd.character_class == null:
@@ -31,14 +31,13 @@ static func save(party: Array[CharacterData], difficulty: int) -> void:
 			"spec": cd.chosen_specialization.display_name if cd.chosen_specialization != null else "",
 		}
 		if cd.weapon != null:
-			e["weapon"] = {
-				"name": cd.weapon.display_name,
-				"damage": cd.weapon.base_damage,
-				"element": int(cd.weapon.element),
-				"rarity": int(cd.weapon.rarity),
-			}
+			e["weapon"] = _weapon_to_dict(cd.weapon)
 		entries.append(e)
-	var data := {"version": VERSION, "difficulty": difficulty, "party": entries}
+	var inv: Array = []
+	for w in inventory:
+		if w != null:
+			inv.append(_weapon_to_dict(w))
+	var data := {"version": VERSION, "difficulty": difficulty, "party": entries, "inventory": inv}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f == null:
 		push_warning("SaveSystem : écriture impossible (%s)" % SAVE_PATH)
@@ -82,14 +81,47 @@ static func load_state() -> Dictionary:
 					break
 		var w: Variant = entry.get("weapon", null)
 		if typeof(w) == TYPE_DICTIONARY:
-			var weapon := WeaponData.new()
-			weapon.display_name = (w as Dictionary).get("name", "Arme")
-			weapon.base_damage = int((w as Dictionary).get("damage", 9))
-			weapon.element = int((w as Dictionary).get("element", 0)) as GameEnums.Element
-			weapon.rarity = int((w as Dictionary).get("rarity", 0)) as GameEnums.Rarity
-			cd.weapon = weapon
+			cd.weapon = _weapon_from_dict(w)
 		party.append(cd)
-	return {"party": party, "difficulty": int((parsed as Dictionary).get("difficulty", 1))}
+
+	var inventory: Array[WeaponData] = []
+	for wd in (parsed as Dictionary).get("inventory", []):
+		if typeof(wd) == TYPE_DICTIONARY:
+			inventory.append(_weapon_from_dict(wd))
+
+	return {
+		"party": party,
+		"difficulty": int((parsed as Dictionary).get("difficulty", 1)),
+		"inventory": inventory,
+	}
+
+
+static func _weapon_to_dict(w: WeaponData) -> Dictionary:
+	return {
+		"name": w.display_name,
+		"damage": w.base_damage,
+		"element": int(w.element),
+		"rarity": int(w.rarity),
+		"agi": w.agility_bonus,
+		"def": w.defense_bonus,
+		"hp": w.max_health_bonus,
+		"crit": w.crit_bonus,
+		"lore": w.lore,
+	}
+
+
+static func _weapon_from_dict(d: Dictionary) -> WeaponData:
+	var w := WeaponData.new()
+	w.display_name = d.get("name", "Arme")
+	w.base_damage = int(d.get("damage", 9))
+	w.element = int(d.get("element", 0)) as GameEnums.Element
+	w.rarity = int(d.get("rarity", 0)) as GameEnums.Rarity
+	w.agility_bonus = int(d.get("agi", 0))
+	w.defense_bonus = int(d.get("def", 0))
+	w.max_health_bonus = int(d.get("hp", 0))
+	w.crit_bonus = float(d.get("crit", 0.0))
+	w.lore = d.get("lore", "")
+	return w
 
 
 static func _classes_by_name() -> Dictionary:

@@ -200,8 +200,12 @@ Construire dans cet ordre, un système à la fois, en testant avant d'enchaîner
    opportuniste/protecteur/manipulateur réagissant à la situation + groupe de 3
    ennemis de démo). Reste : plus d'archétypes/comportements, réactions à l'échec.
 4. **Monde & exploration** : ✅ BASE FAITE (overworld miniature + zones "en grand"
-   + déplacement + transitions). Reste : secrets/chemins cachés, PNJ vivants
-   (routines), événements, choix nuancés, plusieurs points d'intérêt par zone.
+   + déplacement + transitions). **Village-hub** : `scenes/village.tscn`
+   (`scripts/world/village.gd`), zone `is_village` (`ZoneData.is_village`,
+   routée par `Game.enter_zone`). Hameau habité de PNJ avec dialogues + léger
+   balancement idle (pas des statues) : aubergiste, forgeronne (ouvre
+   l'équipement), marchande, ivrogne, ancien. Reste : secrets/chemins cachés,
+   routines/horaires des PNJ, événements, choix nuancés, quêtes.
 5. **Boss avancés** : phases qui changent la *façon de jouer* (pas +dégâts),
    mécaniques propres, philosophie de combat, boss secrets.
 6. **Progression** : ✅ BASE FAITE. Boucle XP/niveaux (`scripts/core/progression.gd`)
@@ -215,8 +219,13 @@ Construire dans cet ordre, un système à la fois, en testant avant d'enchaîner
    `user://save.json` (sur le web = IndexedDB du navigateur → persiste, y compris sur
    Xbox/Edge). `Game._ready` charge au lancement ; sauvegarde auto à la victoire, au
    choix de spé et à la validation d'équipe ; bouton « Nouvelle partie » dans l'écran
-   d'équipe (`Game.reset_progress`). Reste : montée des stats affichée,
-   **équipement/rareté/amélioration**, armes-identités.
+   d'équipe (`Game.reset_progress`).
+   **Équipement / butin** : `WeaponData` porte des bonus d'identité (agilité,
+   défense, PV, crit) appliqués dans `Combatant.from_character` — une arme n'est
+   pas "plus forte" mais DIFFÉRENTE. Catalogue `ContentLibrary.loot_weapons()` ;
+   `random_loot()` tombe à la victoire (~70 %) dans `Game.inventory` (sauvegardé) ;
+   on équipe depuis l'écran d'équipe (bouton « Changer d'arme »). Reste : montée
+   des stats affichée, rareté/amélioration (forge), boutique de la marchande.
 7. **Compagnons & relations** : recrutement non automatique, confiance/loyauté,
    conséquences (rejoindre, refuser, partir, trahir).
 8. **New Game+ / mémoire des boss** : ennemis qui « ont progressé », plus

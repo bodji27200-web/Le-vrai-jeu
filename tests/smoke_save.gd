@@ -18,7 +18,9 @@ func _initialize() -> void:
 	party.append(pal)
 	party.append(ContentLibrary.make_member("Liss", ContentLibrary.elementalist_class()))  # niv.1, sans spé
 
-	SaveSystem.save(party, GameEnums.Difficulty.HARD)
+	# Inventaire (butin non équipé) à sauvegarder aussi.
+	var inv: Array[WeaponData] = [ContentLibrary.loot_weapons()[0]]
+	SaveSystem.save(party, GameEnums.Difficulty.HARD, inv)
 	assert(SaveSystem.has_save())
 
 	# Recharge et vérifie le round-trip.
@@ -27,6 +29,12 @@ func _initialize() -> void:
 	assert(int(st.difficulty) == int(GameEnums.Difficulty.HARD))
 	var loaded: Array = st.party
 	assert(loaded.size() == 2)
+
+	# Inventaire rechargé (nom + bonus de crit préservés).
+	var inv_loaded: Array = st.get("inventory", [])
+	assert(inv_loaded.size() == 1)
+	var iw := inv_loaded[0] as WeaponData
+	assert(iw.display_name == inv[0].display_name and abs(iw.crit_bonus - inv[0].crit_bonus) < 0.001)
 
 	var a := loaded[0] as CharacterData
 	print("Rechargé : %s (%s) niv.%d xp.%d spé=%s arme=%s" % [

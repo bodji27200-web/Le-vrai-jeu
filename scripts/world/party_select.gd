@@ -98,11 +98,11 @@ func _build_ui() -> void:
 
 	# Bas : équipe en cours + actions.
 	var party_title := _label("Ton équipe (max %d)" % MAX_PARTY, 18)
-	party_title.position = Vector2(28, 462)
+	party_title.position = Vector2(28, 448)
 	add_child(party_title)
 	_party_box = HBoxContainer.new()
-	_party_box.position = Vector2(24, 492)
-	_party_box.add_theme_constant_override("separation", 12)
+	_party_box.position = Vector2(24, 470)
+	_party_box.add_theme_constant_override("separation", 10)
 	add_child(_party_box)
 
 	_hint = _label("", 15)
@@ -112,15 +112,15 @@ func _build_ui() -> void:
 
 	_start_btn = Button.new()
 	_start_btn.text = "Valider ▶"
-	_start_btn.custom_minimum_size = Vector2(200, 44)
-	_start_btn.position = Vector2(640, 588)
+	_start_btn.custom_minimum_size = Vector2(190, 42)
+	_start_btn.position = Vector2(560, 592)
 	_start_btn.pressed.connect(_confirm)
 	add_child(_start_btn)
 
 	var newgame := Button.new()
 	newgame.text = "Nouvelle partie ⟳"
-	newgame.custom_minimum_size = Vector2(180, 44)
-	newgame.position = Vector2(860, 588)
+	newgame.custom_minimum_size = Vector2(180, 42)
+	newgame.position = Vector2(770, 592)
 	newgame.tooltip_text = "Efface la sauvegarde et repart d'une équipe niveau 1."
 	newgame.pressed.connect(_new_game)
 	add_child(newgame)
@@ -231,13 +231,13 @@ func _refresh_party() -> void:
 	for i in _party.size():
 		var cd: CharacterData = _party[i]
 		var panel := Panel.new()
-		panel.custom_minimum_size = Vector2(270, 110)
+		panel.custom_minimum_size = Vector2(268, 116)
 		var vb := VBoxContainer.new()
-		vb.position = Vector2(8, 6)
+		vb.position = Vector2(8, 5)
 		vb.add_theme_constant_override("separation", 1)
 		panel.add_child(vb)
 
-		vb.add_child(_label(cd.display_name, 16))
+		vb.add_child(_label(cd.display_name, 15))
 		var cls_name: String = cd.character_class.display_name if cd.character_class != null else "?"
 		var next_xp := Progression.xp_for_next(cd.level)
 		var xp_txt := "niv.%d  (%d/%d XP)" % [cd.level, cd.xp, next_xp] if next_xp > 0 else "niv.%d (max)" % cd.level
@@ -267,11 +267,27 @@ func _refresh_party() -> void:
 			locked.modulate = Color(0.6, 0.6, 0.65)
 			vb.add_child(locked)
 
+		# Arme équipée + changement depuis l'inventaire (butin).
+		var wname: String = cd.weapon.display_name if cd.weapon != null else "—"
+		var wl := _label("Arme : %s" % wname, 12)
+		wl.modulate = Color(1.0, 0.85, 0.5)
+		vb.add_child(wl)
+
+		var btn_row := HBoxContainer.new()
+		btn_row.add_theme_constant_override("separation", 4)
+		var eq := Button.new()
+		eq.text = "Changer (%d)" % Game.inventory.size()
+		eq.disabled = Game.inventory.is_empty()
+		eq.tooltip_text = "Équipe l'arme suivante de l'inventaire (butin)."
+		eq.add_theme_font_size_override("font_size", 11)
+		eq.pressed.connect(_cycle_weapon.bind(cd))
+		btn_row.add_child(eq)
 		var rm := Button.new()
 		rm.text = "Retirer"
-		rm.custom_minimum_size = Vector2(80, 26)
+		rm.add_theme_font_size_override("font_size", 11)
 		rm.pressed.connect(_remove_member.bind(i))
-		vb.add_child(rm)
+		btn_row.add_child(rm)
+		vb.add_child(btn_row)
 		_party_box.add_child(panel)
 
 	if _party.is_empty():
@@ -285,6 +301,20 @@ func _refresh_party() -> void:
 func _choose_spec(cd: CharacterData, spec: SpecializationData) -> void:
 	cd.chosen_specialization = spec
 	Game.save_game()
+	_refresh_party()
+
+
+## Équipe l'arme suivante de l'inventaire ; l'ancienne y retourne (cycle).
+func _cycle_weapon(cd: CharacterData) -> void:
+	if Game.inventory.is_empty():
+		return
+	var next: WeaponData = Game.inventory.pop_front()
+	var old := cd.weapon
+	cd.weapon = next
+	if old != null:
+		Game.inventory.append(old)
+	Game.save_game()
+	_refresh_detail()
 	_refresh_party()
 
 
