@@ -26,6 +26,10 @@ func _process(_delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
+		# Menu / écran-titre.
+		if event.keycode == KEY_ESCAPE:
+			Game.goto_title()
+			return
 		# Composition d'équipe : accessible depuis n'importe où sur la carte.
 		if event.keycode == KEY_P:
 			Game.goto_party_select()
@@ -35,37 +39,67 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _build_world() -> void:
-	# Fond de carte.
-	var bg := Polygon2D.new()
-	bg.polygon = PackedVector2Array([
-		MAP_BOUNDS.position,
-		MAP_BOUNDS.position + Vector2(MAP_BOUNDS.size.x, 0),
-		MAP_BOUNDS.position + MAP_BOUNDS.size,
-		MAP_BOUNDS.position + Vector2(0, MAP_BOUNDS.size.y),
-	])
-	bg.color = Color(0.16, 0.18, 0.24)
-	add_child(bg)
+	# Fond de carte : dégradé vertical (atmosphère, plutôt qu'un aplat).
+	var top := Color(0.09, 0.11, 0.18)
+	var bot := Color(0.17, 0.21, 0.25)
+	var bands := 28
+	for i in bands:
+		var band := Polygon2D.new()
+		var y0 := MAP_BOUNDS.position.y + MAP_BOUNDS.size.y * float(i) / bands
+		var h := MAP_BOUNDS.size.y / bands + 1.0
+		band.polygon = PackedVector2Array([
+			Vector2(MAP_BOUNDS.position.x, y0), Vector2(MAP_BOUNDS.end.x, y0),
+			Vector2(MAP_BOUNDS.end.x, y0 + h), Vector2(MAP_BOUNDS.position.x, y0 + h)])
+		band.color = top.lerp(bot, float(i) / float(bands - 1))
+		add_child(band)
 
-	# Zones en miniature.
+	# Chemin reliant les lieux de la région (le hameau et la forêt).
+	if _zones.size() >= 2:
+		var path := Line2D.new()
+		for z in _zones:
+			path.add_point(z.overworld_position)
+		path.width = 7.0
+		path.default_color = Color(0.55, 0.5, 0.38, 0.45)
+		add_child(path)
+
+	# Zones en miniature, avec halo lumineux.
 	for z in _zones:
 		var node := Node2D.new()
 		node.position = z.overworld_position
 		add_child(node)
 
+		var halo := WorldStage.glow(Color(z.theme_color.r, z.theme_color.g, z.theme_color.b, 0.55), 130.0)
+		node.add_child(halo)
+
 		var island := Polygon2D.new()
 		island.polygon = PackedVector2Array([
-			Vector2(-70, -50), Vector2(70, -50), Vector2(85, 0),
-			Vector2(70, 55), Vector2(-70, 55), Vector2(-85, 0),
+			Vector2(-72, -52), Vector2(72, -52), Vector2(88, 0),
+			Vector2(72, 56), Vector2(-72, 56), Vector2(-88, 0),
 		])
-		island.color = z.theme_color
+		island.color = z.theme_color.darkened(0.1)
 		node.add_child(island)
+		# Reflet supérieur (volume).
+		var topface := Polygon2D.new()
+		topface.polygon = PackedVector2Array([
+			Vector2(-72, -52), Vector2(72, -52), Vector2(60, -20), Vector2(-60, -20)])
+		topface.color = z.theme_color.lightened(0.12)
+		node.add_child(topface)
+		var edge := Line2D.new()
+		edge.points = PackedVector2Array([
+			Vector2(-72, -52), Vector2(72, -52), Vector2(88, 0),
+			Vector2(72, 56), Vector2(-72, 56), Vector2(-88, 0), Vector2(-72, -52)])
+		edge.width = 2.0
+		edge.default_color = z.theme_color.darkened(0.4)
+		node.add_child(edge)
 
 		var name_lbl := Label.new()
 		name_lbl.text = z.display_name
 		name_lbl.add_theme_font_size_override("font_size", 16)
 		name_lbl.add_theme_color_override("font_outline_color", Color.BLACK)
 		name_lbl.add_theme_constant_override("outline_size", 5)
-		name_lbl.position = Vector2(-80, 58)
+		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_lbl.position = Vector2(-90, 60)
+		name_lbl.size = Vector2(180, 22)
 		node.add_child(name_lbl)
 
 		_zone_nodes[z] = node
@@ -96,7 +130,7 @@ func _build_ui() -> void:
 	layer.add_child(title)
 
 	var help := Label.new()
-	help.text = "Flèches / ZQSD : se déplacer    ·    P : composer l'équipe"
+	help.text = "Flèches / ZQSD : se déplacer    ·    P : équipe    ·    Échap : menu"
 	help.add_theme_font_size_override("font_size", 16)
 	help.position = Vector2(30, 64)
 	layer.add_child(help)

@@ -758,18 +758,8 @@ func _build_hud() -> void:
 	_diff_label = _make_label("", 16)
 	_diff_label.position = Vector2(900, 18)
 	layer.add_child(_diff_label)
-	var diff_box := HBoxContainer.new()
-	diff_box.position = Vector2(800, 46)
-	layer.add_child(diff_box)
-	for d in [GameEnums.Difficulty.EASY, GameEnums.Difficulty.NORMAL, GameEnums.Difficulty.HARD, GameEnums.Difficulty.HARDCORE]:
-		var b := Button.new()
-		GameSettings.difficulty = d
-		b.text = GameSettings.difficulty_name()
-		b.pressed.connect(func() -> void:
-			GameSettings.difficulty = d
-			_refresh_ui())
-		diff_box.add_child(b)
-	GameSettings.difficulty = GameEnums.Difficulty.NORMAL
+	# La difficulté se choisit à l'écran-titre et persiste (sauvegarde). On ne la
+	# réinitialise plus ici : avant, un bug la repassait en Normal à chaque combat.
 
 	# Timeline d'ordre des tours (coin haut gauche).
 	_timeline_box = HBoxContainer.new()

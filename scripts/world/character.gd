@@ -20,7 +20,9 @@ var _box: VBoxContainer
 func _ready() -> void:
 	_cd = Game.viewing_character
 	if _cd == null:
-		Game.goto_party_select()
+		# Sécurité : pas de fiche sans personnage. On repart vers l'équipe
+		# (différé : on ne change pas de scène pendant l'ajout du nœud).
+		Game.goto_party_select.call_deferred()
 		return
 	_build_ui()
 	_refresh()

@@ -128,6 +128,12 @@ func goto_overworld() -> void:
 	_change("res://scenes/overworld.tscn")
 
 
+## Retour à l'écran-titre / menu.
+func goto_title() -> void:
+	current_zone = null
+	_change("res://scenes/title.tscn")
+
+
 ## Ouvre l'écran de composition d'équipe (classes + spécialisation + niveau).
 func goto_party_select() -> void:
 	_change("res://scenes/party_select.tscn")
