@@ -5,6 +5,37 @@ class_name Progression
 
 const MAX_LEVEL := 30
 const SPEC_UNLOCK_LEVEL := 5      ## Niveau où l'on choisit sa spécialisation.
+const ATTR_POINTS_PER_LEVEL := 3  ## Points d'attribut gagnés à chaque niveau.
+
+# Bonus par point d'attribut (build du personnage).
+const VITALITE_HP := 12
+const FORCE_ATK := 2
+const AGILITE := 2
+const DEFENSE := 2
+const CHANCE_CRIT := 0.01
+
+
+## Total de points d'attribut gagnés au niveau actuel (3 par niveau au-delà du 1).
+static func attr_total(cd: CharacterData) -> int:
+	return (maxi(1, cd.level) - 1) * ATTR_POINTS_PER_LEVEL
+
+
+static func attr_spent(cd: CharacterData) -> int:
+	return cd.att_vitalite + cd.att_force + cd.att_agilite + cd.att_defense + cd.att_chance
+
+
+## Points encore à dépenser.
+static func attr_available(cd: CharacterData) -> int:
+	return maxi(0, attr_total(cd) - attr_spent(cd))
+
+
+## Réinitialise les attributs (respec) : tout revient en réserve.
+static func reset_attributes(cd: CharacterData) -> void:
+	cd.att_vitalite = 0
+	cd.att_force = 0
+	cd.att_agilite = 0
+	cd.att_defense = 0
+	cd.att_chance = 0
 
 
 ## XP nécessaire pour passer de `level` à `level+1`.

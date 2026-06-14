@@ -15,6 +15,8 @@ func _initialize() -> void:
 	pal.level = 6
 	pal.xp = 40
 	pal.chosen_specialization = pal.character_class.specializations[1]   # Protecteur de la Foi
+	pal.att_vitalite = 4
+	pal.att_chance = 2
 	party.append(pal)
 	party.append(ContentLibrary.make_member("Liss", ContentLibrary.elementalist_class()))  # niv.1, sans spé
 
@@ -57,6 +59,7 @@ func _initialize() -> void:
 	assert(a.level == 6 and a.xp == 40)
 	assert(a.chosen_specialization != null and a.chosen_specialization.display_name == "Protecteur de la Foi")
 	assert(a.weapon != null and a.weapon.base_damage > 0)
+	assert(a.att_vitalite == 4 and a.att_chance == 2)   # attributs alloués rechargés
 
 	var b := loaded[1] as CharacterData
 	assert(b.character_class.display_name == "Élémentaliste")

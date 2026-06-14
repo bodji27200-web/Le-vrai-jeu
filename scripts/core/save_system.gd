@@ -103,6 +103,7 @@ static func _char_to_dict(cd: CharacterData) -> Dictionary:
 		"companion": cd.is_companion,
 		"loyalty": cd.loyalty,
 		"bio": cd.bio,
+		"att": [cd.att_vitalite, cd.att_force, cd.att_agilite, cd.att_defense, cd.att_chance],
 	}
 	if cd.weapon != null:
 		e["weapon"] = _weapon_to_dict(cd.weapon)
@@ -123,6 +124,13 @@ static func _char_from_dict(entry: Variant, by_name: Dictionary) -> CharacterDat
 	cd.is_companion = bool(entry.get("companion", false))
 	cd.loyalty = int(entry.get("loyalty", 0))
 	cd.bio = entry.get("bio", "")
+	var att: Variant = entry.get("att", [])
+	if typeof(att) == TYPE_ARRAY and (att as Array).size() == 5:
+		cd.att_vitalite = int(att[0])
+		cd.att_force = int(att[1])
+		cd.att_agilite = int(att[2])
+		cd.att_defense = int(att[3])
+		cd.att_chance = int(att[4])
 	var spec_name: String = entry.get("spec", "")
 	if spec_name != "":
 		for sp in cls.specializations:

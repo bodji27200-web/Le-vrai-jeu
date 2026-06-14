@@ -248,5 +248,20 @@ func _initialize() -> void:
 	assert(not sev.choices.is_empty() and sev.choices[0].has("item_weapon"))
 	assert(ContentLibrary.forest_secret_weapon().rarity == GameEnums.Rarity.LEGENDARY)
 
-	print("OK : progression + équipement + 1re zone (rencontres/boss/compagnon/secret) + boutique validés.")
+	# --- Attributs / build : points alloués → vraies stats de combat ---
+	var hero2 := ContentLibrary.make_member("Att", ContentLibrary.berserker_class())
+	hero2.level = 5
+	assert(Progression.attr_available(hero2) == (5 - 1) * Progression.ATTR_POINTS_PER_LEVEL)
+	var hp_before := Combatant.from_character(hero2).max_health
+	hero2.att_vitalite += 3
+	var hp_after := Combatant.from_character(hero2).max_health
+	assert(hp_after == hp_before + 3 * Progression.VITALITE_HP)
+	assert(Progression.attr_available(hero2) == (5 - 1) * Progression.ATTR_POINTS_PER_LEVEL - 3)
+	hero2.att_force += 2
+	assert(Combatant.from_character(hero2).strength >= 2 * Progression.FORCE_ATK)
+	Progression.reset_attributes(hero2)
+	assert(Progression.attr_spent(hero2) == 0)
+	print("Attributs : +3 Vitalité = +%d PV ; respec OK" % (3 * Progression.VITALITE_HP))
+
+	print("OK : progression + attributs + équipement + 1re zone (rencontres/boss/compagnon/secret) + boutique validés.")
 	quit()

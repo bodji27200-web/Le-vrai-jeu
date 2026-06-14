@@ -77,6 +77,14 @@ func goto_shop() -> void:
 	_change("res://scenes/shop.tscn")
 
 
+## Personnage dont on consulte la fiche détaillée (attributs, arme, compétences).
+var viewing_character: CharacterData = null
+
+func goto_character(cd: CharacterData) -> void:
+	viewing_character = cd
+	_change("res://scenes/character.tscn")
+
+
 # --- Compagnons & événements -------------------------------------------------
 
 ## Recrute un compagnon : dans l'équipe s'il reste de la place (3 max), sinon en

@@ -324,6 +324,12 @@ func _refresh_party() -> void:
 
 		var btn_row := HBoxContainer.new()
 		btn_row.add_theme_constant_override("separation", 4)
+		var info := Button.new()
+		info.text = "Fiche"
+		info.tooltip_text = "Voir les stats, attributs (points à dépenser), arme et compétences."
+		info.add_theme_font_size_override("font_size", 11)
+		info.pressed.connect(Game.goto_character.bind(cd))
+		btn_row.add_child(info)
 		var eq := Button.new()
 		eq.text = "Changer (%d)" % Game.inventory.size()
 		eq.disabled = Game.inventory.is_empty()

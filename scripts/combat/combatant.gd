@@ -118,6 +118,14 @@ static func from_character(c: CharacterData) -> Combatant:
 	else:
 		cb.base_damage = 5
 
+	# Attributs alloués par le joueur (build) : bonus additifs aux stats.
+	cb.max_health += c.att_vitalite * Progression.VITALITE_HP
+	cb.strength += c.att_force * Progression.FORCE_ATK
+	cb.agility += c.att_agilite * Progression.AGILITE
+	cb.defense += c.att_defense * Progression.DEFENSE
+	cb.crit_chance += c.att_chance * Progression.CHANCE_CRIT
+	cb.health = cb.max_health
+
 	# Application de la spécialisation choisie.
 	var spec := c.chosen_specialization
 	if spec != null:

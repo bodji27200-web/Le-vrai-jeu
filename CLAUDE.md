@@ -230,6 +230,15 @@ Construire dans cet ordre, un système à la fois, en testant avant d'enchaîner
    compétences (`unlock_level`) et, **au niveau 5**, le choix de spécialisation
    (`Progression.SPEC_UNLOCK_LEVEL`). Les héros démarrent **niveau 1 sans spé**.
    Écran de fin de combat = récap XP/niveaux/compétences/spé débloquée.
+   **Attributs & fiche de personnage** (réf. Clair Obscur) : chaque montée de
+   niveau donne des **points d'attribut** (`Progression.ATTR_POINTS_PER_LEVEL`)
+   à répartir dans Vitalité/Force/Agilité/Défense/Chance (`CharacterData.att_*`),
+   qui nourrissent additivement les vraies stats de combat dans
+   `Combatant.from_character`. Écran `scenes/character.tscn` (`character.gd`,
+   ouvert via « Fiche » dans l'écran d'équipe) : stats de combat dérivées,
+   dépense des points, **respec** (`Progression.reset_attributes`), arme-identité
+   et compétences par niveau. Sauvegardés. Reste : **arbre de compétences à
+   embranchements** + **pictos** (modules passifs) + grades de scaling d'arme.
    **Sauvegarde** (`scripts/core/save_system.gd`) : équipe + difficulté en JSON dans
    `user://save.json` (sur le web = IndexedDB du navigateur → persiste, y compris sur
    Xbox/Edge). `Game._ready` charge au lancement ; sauvegarde auto à la victoire, au
