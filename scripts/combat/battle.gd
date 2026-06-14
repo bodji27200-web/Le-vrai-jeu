@@ -12,6 +12,10 @@ const DODGE_LATE := 0.16     ## ...et 0.16 s après.
 const TAIL := 0.12           ## Marge d'écoute après l'impact.
 const PARRY_MANA_GAIN := 1   ## Volontairement modeste (équilibrage).
 
+# --- Mise en scène (cinématique) ---------------------------------------------
+const PARRY_SLOWMO := 0.45   ## Ralenti juste avant le contact (la parade = un instant).
+const STRIKE_FAST := 0.12    ## Part de l'élan jouée à vitesse normale avant le ralenti.
+
 # --- Placement sur le champ de bataille ---------------------------------------
 const HERO_POS := [Vector2(300, 230), Vector2(300, 350), Vector2(300, 470)]
 const SUMMON_POS := [Vector2(140, 300), Vector2(140, 440)]   ## Max 2 invocations.
@@ -34,7 +38,8 @@ var _fx_root: Node2D                    ## FX (tranches, nombres, étincelles) a
 
 # --- Capture de défense active -----------------------------------------------
 var _capturing := false
-var _capture_start_ms := 0
+var _capture_elapsed := 0.0             ## Temps de JEU écoulé depuis le début de l'élan
+										## (scaled : reste cohérent même pendant le ralenti).
 var _def_input := ""                    ## "", "parry" ou "dodge"
 var _def_time := -1.0
 var _current_defender_view: CombatantView = null
@@ -48,6 +53,9 @@ var _action_box: HBoxContainer
 var _diff_label: Label
 var _end_box: VBoxContainer
 var _timeline_box: HBoxContainer
+var _lb_top: ColorRect                  ## Bandes cinéma (letterbox) du tour ennemi.
+var _lb_bottom: ColorRect
+var _screen := Vector2(1152, 648)
 
 signal _ui_action(kind: String, payload: Variant)
 
@@ -59,6 +67,15 @@ func _ready() -> void:
 	_build_hud()
 	_refresh_ui()
 	_run_battle()
+
+
+## Accumule le temps de JEU pendant la capture de défense. `delta` est mis à
+## l'échelle par Engine.time_scale, donc le ralenti cinématique ralentit AUSSI
+## ce compteur : la validité de la parade reste mesurée dans le même repère que
+## l'animation (cf. _defense_window).
+func _process(delta: float) -> void:
+	if _capturing:
+		_capture_elapsed += delta
 
 
 ## Construit la pile de rendu : décor isométrique (fond), terrain trié en
@@ -95,7 +112,7 @@ func _unhandled_input(event: InputEvent) -> void:
 ## Enregistre l'input ET joue immédiatement la réaction visuelle (game feel).
 func _register_defense(kind: String) -> void:
 	_def_input = kind
-	_def_time = (Time.get_ticks_msec() - _capture_start_ms) / 1000.0
+	_def_time = _capture_elapsed
 	if _current_defender_view != null:
 		if kind == "parry":
 			_current_defender_view.play_parry()
@@ -140,6 +157,7 @@ func _build_views() -> void:
 	_camera = BattleCamera.new()
 	add_child(_camera)
 	_camera.position = get_viewport_rect().size * 0.5
+	_camera.base_position = _camera.position   # plan large de référence pour reset_view
 
 
 func _all() -> Array:
@@ -412,6 +430,8 @@ func _enemy_turn(enemy: Combatant) -> void:
 
 	var seq := _scaled_hits(intent.hits)
 	_log("[color=violet][b]%s[/b] enchaîne %d attaque(s) sur %s ![/color]" % [enemy.display_name, seq, target.display_name])
+	if target_is_hero:
+		_set_letterbox(true)   # bandes cinéma : « moment » du tour ennemi
 
 	var parried_all := true
 	for i in seq:
@@ -476,6 +496,10 @@ func _enemy_turn(enemy: Combatant) -> void:
 		_log("  Riposte : [color=lime]%d[/color] dégâts sur %s !" % [dmg.damage, enemy.display_name])
 		_refresh_ui()
 
+	# Fin de la séquence : retour au plan large + on retire les bandes cinéma.
+	_camera.reset_view(0.45)
+	if target_is_hero:
+		_set_letterbox(false)
 	_set_status("")
 
 
@@ -514,16 +538,30 @@ func _defense_window(attacker: Combatant, defender: Combatant, move_index: int =
 	_def_input = ""
 	_def_time = -1.0
 	_current_defender_view = _views[defender]
-	_capture_start_ms = Time.get_ticks_msec()
+	_capture_elapsed = 0.0
 	_capturing = true
 
 	var attacker_view: CombatantView = _views[attacker]
-	attacker_view.play_attack(_views[defender].home, move_index)
+	var av_home: Vector2 = attacker_view.home
+	var dv_home: Vector2 = _views[defender].home
 	var impact := CombatantView.WINDUP + CombatantView.STRIKE
-	await get_tree().create_timer(impact).timeout
+
+	# --- Mise en scène cinématique de l'attaque ------------------------------
+	# Tell : la caméra pousse vers l'attaquant (on cadre attaquant + cible).
+	_camera.focus_on(dv_home.lerp(av_home, 0.6), 1.22, CombatantView.WINDUP * 0.8)
+	attacker_view.play_attack(dv_home, move_index)
+	await get_tree().create_timer(CombatantView.WINDUP).timeout
+	# Élan : on resserre sur la cible (là où le joueur doit lire le coup).
+	_camera.focus_on(dv_home.lerp(av_home, 0.3), 1.45, 0.16)
+	await get_tree().create_timer(STRIKE_FAST).timeout
+	# Instant de contact : RALENTI — la fenêtre de parade devient un instant lisible.
+	# (Le compteur _capture_elapsed ralentit aussi : le timing de parade reste juste.)
+	Engine.time_scale = PARRY_SLOWMO
+	await get_tree().create_timer(CombatantView.STRIKE - STRIKE_FAST).timeout
 	# La tranche apparaît au contact, que le joueur pare ou non (le coup A eu lieu).
 	_spawn_slash(_views[defender], attacker_view.attack_geometry(move_index), Color(1, 0.78, 0.72))
 	await get_tree().create_timer(TAIL).timeout
+	Engine.time_scale = 1.0
 
 	_capturing = false
 	_current_defender_view = null
@@ -664,6 +702,22 @@ func _build_hud() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 
+	# Bandes cinéma (letterbox), repliées par défaut, déployées au tour ennemi.
+	# Ajoutées en premier : le reste du HUD se dessine par-dessus.
+	_screen = get_viewport_rect().size
+	_lb_top = ColorRect.new()
+	_lb_top.color = Color.BLACK
+	_lb_top.position = Vector2.ZERO
+	_lb_top.size = Vector2(_screen.x, 0)
+	_lb_top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(_lb_top)
+	_lb_bottom = ColorRect.new()
+	_lb_bottom.color = Color.BLACK
+	_lb_bottom.position = Vector2(0, _screen.y)
+	_lb_bottom.size = Vector2(_screen.x, 0)
+	_lb_bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(_lb_bottom)
+
 	_enemy_name = _make_label("", 24)
 	_enemy_name.position = Vector2(440, 18)
 	layer.add_child(_enemy_name)
@@ -745,6 +799,15 @@ func _clear_actions() -> void:
 
 func _set_status(text: String) -> void:
 	_status.text = text
+
+
+## Déploie / replie les bandes cinéma (letterbox) du tour ennemi.
+func _set_letterbox(on: bool) -> void:
+	var h := 48.0 if on else 0.0
+	var t := create_tween().set_parallel()
+	t.tween_property(_lb_top, "size:y", h, 0.35).set_trans(Tween.TRANS_SINE)
+	t.tween_property(_lb_bottom, "size:y", h, 0.35).set_trans(Tween.TRANS_SINE)
+	t.tween_property(_lb_bottom, "position:y", _screen.y - h, 0.35).set_trans(Tween.TRANS_SINE)
 
 
 func _log(bbcode: String) -> void:
