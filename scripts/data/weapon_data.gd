@@ -3,6 +3,10 @@ class_name WeaponData
 extends Resource
 
 @export var display_name: String = "Lame rouillée"
+## Sprite d'arme tenue en main (cf. PixelArt.for_weapon) : sword, greatsword,
+## rapier, dagger, axe, mace, spear, bow, staff, staff_fire/dark/holy.
+## Vide = on garde l'arme par défaut de la classe (CombatStyle).
+@export var visual_kind: String = ""
 @export var element: GameEnums.Element = GameEnums.Element.NONE
 @export var rarity: GameEnums.Rarity = GameEnums.Rarity.COMMON
 @export var level: int = 1

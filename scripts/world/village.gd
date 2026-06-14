@@ -13,6 +13,7 @@ const INTERACT_RADIUS := 130.0
 var _zone: ZoneData
 var _player: PlayerAvatar
 var _camera: Camera2D
+var _world: Node2D                  ## Décor + PNJ + joueur, triés en profondeur.
 var _prompt: Label
 var _dialogue: Label
 
@@ -23,7 +24,7 @@ var _npcs := [
 		"pos": Vector2(-250, -120), "color": Color(0.80, 0.55, 0.35), "action": "dialogue",
 		"lines": [
 			"Bienvenue à l'auberge, voyageur. Pose tes armes un instant.",
-			"On raconte que les morts s'agitent dans le Marais d'Ombre…",
+			"On raconte que des bandits rôdent dans la Clairière, à l'ouest…",
 			"Une chope ? Ah, tu as du pain sur la planche d'abord.",
 		], "i": 0,
 	},
@@ -121,24 +122,35 @@ func _unhandled_input(event: InputEvent) -> void:
 # =============================================================================
 
 func _build_village() -> void:
-	var ground := Polygon2D.new()
-	ground.polygon = PackedVector2Array([
-		ZONE_BOUNDS.position,
-		ZONE_BOUNDS.position + Vector2(ZONE_BOUNDS.size.x, 0),
-		ZONE_BOUNDS.position + ZONE_BOUNDS.size,
-		ZONE_BOUNDS.position + Vector2(0, ZONE_BOUNDS.size.y),
-	])
-	var base_col: Color = _zone.theme_color if _zone != null else Color(0.5, 0.45, 0.35)
-	ground.color = base_col.darkened(0.4)
-	add_child(ground)
+	var base_col: Color = _zone.theme_color if _zone != null else Color(0.62, 0.5, 0.34)
 
-	# Sentier central + quelques maisons (placeholders évocateurs).
-	var path := Polygon2D.new()
-	path.polygon = PackedVector2Array([Vector2(-950, 40), Vector2(450, 10), Vector2(450, 70), Vector2(-950, 100)])
-	path.color = base_col.lightened(0.1)
-	add_child(path)
-	for h in [Vector2(-300, -220), Vector2(120, -200), Vector2(360, -40), Vector2(-120, 230), Vector2(260, 200)]:
-		_add_house(h, base_col)
+	# Sol isométrique (terre/herbe du hameau) + fond.
+	var stage := WorldStage.new()
+	stage.bounds = ZONE_BOUNDS
+	stage.ground = base_col.darkened(0.05)
+	stage.sky_top = Color(0.12, 0.13, 0.20)
+	add_child(stage)
+
+	# Conteneur trié en profondeur.
+	_world = Node2D.new()
+	_world.y_sort_enabled = true
+	add_child(_world)
+
+	# Maisons en bois + la taverne (fenêtres chaudes), placées autour de la place.
+	var homes := [Vector2(-330, -210), Vector2(140, -230), Vector2(380, -60), Vector2(-150, 250)]
+	for h in homes:
+		var house := WorldStage.house(1.0, base_col.lightened(0.04), false)
+		house.position = h
+		_world.add_child(house)
+	# La taverne (plus grande, fenêtres allumées) près de l'aubergiste.
+	var tavern := WorldStage.house(1.35, Color(0.5, 0.34, 0.22), true)
+	tavern.position = Vector2(-250, -40)
+	_world.add_child(tavern)
+	# Un peu de verdure pour habiller.
+	for b in [Vector2(-520, 120), Vector2(470, 150), Vector2(60, 320), Vector2(-420, -300)]:
+		var bush := WorldStage.bush(1.1, base_col.lightened(0.2))
+		bush.position = b
+		_world.add_child(bush)
 
 	# Sortie.
 	_add_marker(EXIT_POS, Color(0.5, 0.8, 1.0), "Sortie")
@@ -151,36 +163,23 @@ func _build_village() -> void:
 	_player = PlayerAvatar.new()
 	_player.speed = 380.0
 	_player.bounds = ZONE_BOUNDS
-	add_child(_player)
+	_world.add_child(_player)
 	_player.setup(Game.lead_sprite_kind(), Vector2(44, 60))
 	_player.position = Vector2(-820, 40)
 
 	_camera = Camera2D.new()
-	_camera.zoom = Vector2(1.3, 1.3)
+	_camera.zoom = Vector2(1.2, 1.2)
 	add_child(_camera)
 	_camera.make_current()
-
-
-func _add_house(pos: Vector2, col: Color) -> void:
-	var node := Node2D.new()
-	node.position = pos
-	add_child(node)
-	var wall := Polygon2D.new()
-	wall.polygon = PackedVector2Array([Vector2(-70, -50), Vector2(70, -50), Vector2(70, 60), Vector2(-70, 60)])
-	wall.color = col.lightened(0.05)
-	node.add_child(wall)
-	var roof := Polygon2D.new()
-	roof.polygon = PackedVector2Array([Vector2(-85, -50), Vector2(0, -110), Vector2(85, -50)])
-	roof.color = col.darkened(0.45)
-	node.add_child(roof)
 
 
 func _add_npc(npc: Dictionary) -> void:
 	var node := Node2D.new()
 	node.position = npc.pos
-	add_child(node)
+	_world.add_child(node)
+	node.add_child(WorldStage._shadow(22, 9))
 	var body := Polygon2D.new()
-	body.polygon = PackedVector2Array([Vector2(-12, -34), Vector2(12, -34), Vector2(14, 6), Vector2(-14, 6)])
+	body.polygon = PackedVector2Array([Vector2(-12, -34), Vector2(12, -34), Vector2(14, 2), Vector2(-14, 2)])
 	body.color = npc.color
 	node.add_child(body)
 	var head := Polygon2D.new()
@@ -192,7 +191,7 @@ func _add_npc(npc: Dictionary) -> void:
 	lbl.add_theme_font_size_override("font_size", 15)
 	lbl.add_theme_color_override("font_outline_color", Color.BLACK)
 	lbl.add_theme_constant_override("outline_size", 5)
-	lbl.position = Vector2(-70, -84)
+	lbl.position = Vector2(-70, -86)
 	lbl.size = Vector2(140, 20)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	node.add_child(lbl)
@@ -206,17 +205,23 @@ func _add_npc(npc: Dictionary) -> void:
 func _add_marker(pos: Vector2, color: Color, label: String) -> void:
 	var node := Node2D.new()
 	node.position = pos
-	add_child(node)
+	_world.add_child(node)
 	var ring := Polygon2D.new()
-	ring.polygon = PackedVector2Array([Vector2(0, -45), Vector2(40, 0), Vector2(0, 45), Vector2(-40, 0)])
-	ring.color = color
+	ring.polygon = PackedVector2Array([Vector2(0, -16), Vector2(34, 0), Vector2(0, 16), Vector2(-34, 0)])
+	ring.color = Color(color.r, color.g, color.b, 0.85)
 	node.add_child(ring)
+	var beam := Polygon2D.new()
+	beam.polygon = PackedVector2Array([Vector2(-6, 0), Vector2(6, 0), Vector2(6, -60), Vector2(-6, -60)])
+	beam.color = Color(color.r, color.g, color.b, 0.35)
+	node.add_child(beam)
 	var lbl := Label.new()
 	lbl.text = label
 	lbl.add_theme_font_size_override("font_size", 20)
 	lbl.add_theme_color_override("font_outline_color", Color.BLACK)
 	lbl.add_theme_constant_override("outline_size", 5)
-	lbl.position = Vector2(-40, 48)
+	lbl.position = Vector2(-50, -86)
+	lbl.size = Vector2(100, 22)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	node.add_child(lbl)
 
 

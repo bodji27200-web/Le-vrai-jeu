@@ -31,7 +31,7 @@ var _weapon_pivot: Node2D           ## Pivot au pommeau : on tourne ça pour bal
 var _hp_label: Label
 
 
-func setup(disp_name: String, sprite_kind: String, body_size: Vector2, is_enemy: bool, fallback_color: Color = Color(0.6, 0.6, 0.65)) -> void:
+func setup(disp_name: String, sprite_kind: String, body_size: Vector2, is_enemy: bool, fallback_color: Color = Color(0.6, 0.6, 0.65), weapon_override: String = "") -> void:
 	_half = body_size * 0.5
 	_is_enemy = is_enemy
 	face_dir = Vector2.LEFT if is_enemy else Vector2.RIGHT
@@ -64,12 +64,14 @@ func setup(disp_name: String, sprite_kind: String, body_size: Vector2, is_enemy:
 		_visual = poly
 	_body.add_child(_visual)
 
-	# Arme tenue en main (sauf mains nues : weapon "").
-	var weapon_kind: String = _style.weapon
+	# Arme tenue en main. L'arme ÉQUIPÉE (weapon_override) prime sur celle de la
+	# classe ; "" = mains nues (poings/griffes).
+	var weapon_kind: String = weapon_override if weapon_override != "" else String(_style.weapon)
 	var wtex := PixelArt.for_weapon(weapon_kind)
 	if wtex != null:
-		var hand_x: float = _half.x * 0.5
-		var hand_y: float = _half.y * 0.12
+		# Ancrage à la MAIN (sinon l'arme paraît flotter) : main basse, vers l'avant.
+		var hand_x: float = _half.x * 0.42
+		var hand_y: float = _half.y * 0.32
 		_weapon_pivot = Node2D.new()
 		_weapon_pivot.position = Vector2(-hand_x if is_enemy else hand_x, hand_y)
 		_weapon_pivot.scale.x = -1.0 if is_enemy else 1.0
@@ -77,8 +79,9 @@ func setup(disp_name: String, sprite_kind: String, body_size: Vector2, is_enemy:
 		var wspr := Sprite2D.new()
 		wspr.texture = wtex
 		wspr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		wspr.offset = Vector2(0, -wtex.get_height() / 2.0)   # pommeau au pivot
-		var ws: float = (body_size.y * 0.8) / float(wtex.get_height())
+		# La POIGNÉE (bas de la texture) coïncide avec la main (le pivot).
+		wspr.offset = Vector2(0, -wtex.get_height() + 3.0)
+		var ws: float = (body_size.y * 0.62) / float(wtex.get_height())
 		wspr.scale = Vector2(ws, ws)
 		_weapon_pivot.add_child(wspr)
 		_body.add_child(_weapon_pivot)

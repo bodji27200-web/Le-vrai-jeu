@@ -9,7 +9,20 @@ static var difficulty: GameEnums.Difficulty = GameEnums.Difficulty.NORMAL
 static func parry_window_scale() -> float:
 	match difficulty:
 		GameEnums.Difficulty.EASY:
-			return 1.6
+			return 1.7
+		GameEnums.Difficulty.NORMAL:
+			return 1.0
+		GameEnums.Difficulty.HARD:
+			return 0.62
+		GameEnums.Difficulty.HARDCORE:
+			return 0.42
+	return 1.0
+
+## Multiplie la fenêtre d'esquive (Hardcore : marges de réaction réduites).
+static func dodge_window_scale() -> float:
+	match difficulty:
+		GameEnums.Difficulty.EASY:
+			return 1.4
 		GameEnums.Difficulty.NORMAL:
 			return 1.0
 		GameEnums.Difficulty.HARD:
@@ -26,9 +39,9 @@ static func enemy_aggression_scale() -> float:
 		GameEnums.Difficulty.NORMAL:
 			return 1.0
 		GameEnums.Difficulty.HARD:
-			return 1.15
-		GameEnums.Difficulty.HARDCORE:
 			return 1.35
+		GameEnums.Difficulty.HARDCORE:
+			return 1.75
 	return 1.0
 
 ## Échelle des dégâts ennemis (appliquée à base_damage à la fabrication).
@@ -39,11 +52,11 @@ static func enemy_damage_scale() -> float:
 		GameEnums.Difficulty.EASY:
 			return 0.80
 		GameEnums.Difficulty.NORMAL:
-			return 1.30   # un coup encaissé fait vraiment mal
+			return 1.40
 		GameEnums.Difficulty.HARD:
-			return 1.55
-		GameEnums.Difficulty.HARDCORE:
 			return 1.85
+		GameEnums.Difficulty.HARDCORE:
+			return 2.40   # un coup non paré peut être fatal
 	return 1.0
 
 ## Échelle des PV ennemis (combats plus longs = plus d'occasions de se faire toucher).
@@ -54,9 +67,9 @@ static func enemy_health_scale() -> float:
 		GameEnums.Difficulty.NORMAL:
 			return 1.20
 		GameEnums.Difficulty.HARD:
-			return 1.35
+			return 1.5
 		GameEnums.Difficulty.HARDCORE:
-			return 1.55
+			return 1.9
 	return 1.0
 
 static func difficulty_name() -> String:

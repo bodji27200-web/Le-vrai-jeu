@@ -124,7 +124,7 @@ func _build_views() -> void:
 	for i in _players.size():
 		var v := CombatantView.new()
 		_field.add_child(v)
-		v.setup(_players[i].display_name, _players[i].sprite_kind, Vector2(60, 90), false)
+		v.setup(_players[i].display_name, _players[i].sprite_kind, Vector2(60, 90), false, Color(0.6, 0.6, 0.65), _players[i].weapon_kind)
 		v.set_home(HERO_POS[i])
 		_views[_players[i]] = v
 	for i in _enemies.size():
@@ -529,12 +529,18 @@ func _defense_window(attacker: Combatant, defender: Combatant, move_index: int =
 	_current_defender_view = null
 
 	if _def_input == "parry":
-		var parry_half := PARRY_HALF * GameSettings.parry_window_scale()
-		if absf(_def_time - impact) <= parry_half:
+		# Fenêtre ASYMÉTRIQUE : on tolère davantage un appui légèrement EN RETARD
+		# (réaction humaine + latence du navigateur) → parer "au moment du contact"
+		# fonctionne. La difficulté resserre l'ensemble.
+		var scale := GameSettings.parry_window_scale()
+		var early := PARRY_HALF * scale
+		var late := PARRY_HALF * 1.6 * scale
+		if _def_time >= impact - early and _def_time <= impact + late:
 			return GameEnums.DefenseResult.PARRY
 		return GameEnums.DefenseResult.HIT  # parade ratée = risque assumé
 	if _def_input == "dodge":
-		if _def_time >= impact - DODGE_EARLY and _def_time <= impact + DODGE_LATE:
+		var d := GameSettings.dodge_window_scale()
+		if _def_time >= impact - DODGE_EARLY * d and _def_time <= impact + DODGE_LATE * d:
 			return GameEnums.DefenseResult.DODGE
 		return GameEnums.DefenseResult.HIT
 	return GameEnums.DefenseResult.HIT

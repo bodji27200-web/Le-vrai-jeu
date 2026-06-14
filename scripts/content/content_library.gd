@@ -395,7 +395,7 @@ static func make_member(name: String, cls: ClassData, spec: SpecializationData =
 
 ## Une arme n'est pas "plus forte", elle est DIFFÉRENTE (cf. vision : l'arme est
 ## une identité). Chacune pousse un style : vitesse/crit, défense, robustesse…
-static func _wpn(name: String, dmg: int, element: GameEnums.Element, rarity: GameEnums.Rarity, agi: int = 0, defe: int = 0, hp: int = 0, crit: float = 0.0, lore: String = "") -> WeaponData:
+static func _wpn(name: String, dmg: int, element: GameEnums.Element, rarity: GameEnums.Rarity, agi: int = 0, defe: int = 0, hp: int = 0, crit: float = 0.0, lore: String = "", vkind: String = "sword") -> WeaponData:
 	var w := WeaponData.new()
 	w.display_name = name
 	w.base_damage = dmg
@@ -406,19 +406,21 @@ static func _wpn(name: String, dmg: int, element: GameEnums.Element, rarity: Gam
 	w.max_health_bonus = hp
 	w.crit_bonus = crit
 	w.lore = lore
+	w.visual_kind = vkind
 	return w
 
-## Catalogue des armes qui peuvent tomber en butin.
+## Catalogue des armes qui peuvent tomber en butin. Chaque arme a une SILHOUETTE
+## distincte (visual_kind) : l'équiper change l'arme tenue à l'écran.
 static func loot_weapons() -> Array[WeaponData]:
 	return [
-		_wpn("Lame Véloce", 8, GameEnums.Element.NONE, GameEnums.Rarity.RARE, 6, 0, 0, 0.08, "Si légère qu'elle semble danser."),
-		_wpn("Dague Sanguine", 7, GameEnums.Element.SHADOW, GameEnums.Rarity.RARE, 2, 0, 0, 0.15, "Elle a soif."),
-		_wpn("Couperet Brutal", 16, GameEnums.Element.NONE, GameEnums.Rarity.RARE, 0, 0, 0, 0.04, "Un coup, une fin."),
-		_wpn("Égide du Gardien", 9, GameEnums.Element.HOLY, GameEnums.Rarity.EPIC, 0, 8, 30, 0.0, "Un rempart fait arme."),
-		_wpn("Marteau de Granit", 14, GameEnums.Element.EARTH, GameEnums.Rarity.RARE, 0, 6, 40, 0.0, "Lourd comme la montagne."),
-		_wpn("Bâton de Givre", 8, GameEnums.Element.ICE, GameEnums.Rarity.RARE, 3, 0, 10, 0.02, "Le froid obéit."),
-		_wpn("Faux des Ombres", 12, GameEnums.Element.SHADOW, GameEnums.Rarity.EPIC, 2, 0, 0, 0.10, "La moisson des âmes."),
-		_wpn("Arc du Rôdeur", 10, GameEnums.Element.NONE, GameEnums.Rarity.RARE, 8, 0, 0, 0.05, "Le vent guide la flèche."),
+		_wpn("Lame Véloce", 8, GameEnums.Element.NONE, GameEnums.Rarity.RARE, 6, 0, 0, 0.08, "Si légère qu'elle semble danser.", "rapier"),
+		_wpn("Dague Sanguine", 7, GameEnums.Element.SHADOW, GameEnums.Rarity.RARE, 2, 0, 0, 0.15, "Elle a soif.", "dagger"),
+		_wpn("Couperet Brutal", 16, GameEnums.Element.NONE, GameEnums.Rarity.RARE, 0, 0, 0, 0.04, "Un coup, une fin.", "axe"),
+		_wpn("Égide du Gardien", 9, GameEnums.Element.HOLY, GameEnums.Rarity.EPIC, 0, 8, 30, 0.0, "Un rempart fait arme.", "sword"),
+		_wpn("Marteau de Granit", 14, GameEnums.Element.EARTH, GameEnums.Rarity.RARE, 0, 6, 40, 0.0, "Lourd comme la montagne.", "mace"),
+		_wpn("Bâton de Givre", 8, GameEnums.Element.ICE, GameEnums.Rarity.RARE, 3, 0, 10, 0.02, "Le froid obéit.", "staff"),
+		_wpn("Faux des Ombres", 12, GameEnums.Element.SHADOW, GameEnums.Rarity.EPIC, 2, 0, 0, 0.10, "La moisson des âmes.", "greatsword"),
+		_wpn("Arc du Rôdeur", 10, GameEnums.Element.NONE, GameEnums.Rarity.RARE, 8, 0, 0, 0.05, "Le vent guide la flèche.", "bow"),
 	]
 
 ## Tire une arme de butin au hasard (communes plus fréquentes que les épiques).
@@ -460,7 +462,7 @@ static func shop_weapons() -> Array[WeaponData]:
 static func companion_kael() -> CharacterData:
 	var c := _character("Kael", duelist_class(),
 		_wpn("Lame du Déserteur", 11, GameEnums.Element.NONE, GameEnums.Rarity.EPIC, 5, 0, 0, 0.10,
-			"L'épée d'un homme qui a fui une guerre injuste — et le regrette."),
+			"L'épée d'un homme qui a fui une guerre injuste — et le regrette.", "rapier"),
 		2)
 	c.is_companion = true
 	c.bio = "Ancien soldat en fuite. Rapide, méfiant, mais d'une loyauté farouche envers qui lui rend sa dignité."
@@ -490,7 +492,7 @@ static func forest_recruit_event() -> Dictionary:
 ## Arme unique cachée dans un recoin de la forêt (récompense d'exploration).
 static func forest_secret_weapon() -> WeaponData:
 	return _wpn("Rosée d'Émeraude", 13, GameEnums.Element.EARTH, GameEnums.Rarity.LEGENDARY,
-		4, 4, 20, 0.06, "Une lame oubliée sous la mousse, où perle une sève qui ne sèche jamais.")
+		4, 4, 20, 0.06, "Une lame oubliée sous la mousse, où perle une sève qui ne sèche jamais.", "sword")
 
 ## Événement secret de la forêt : récompense l'exploration d'un recoin caché.
 static func forest_secret_event() -> Dictionary:

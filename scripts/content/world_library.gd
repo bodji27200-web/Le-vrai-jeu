@@ -13,17 +13,10 @@ static func _zone(id: String, name: String, pos: Vector2, color: Color, desc: St
 	return z
 
 static func zones() -> Array[ZoneData]:
+	# Démo centrée sur UNE région : le Hameau (hub) et la forêt voisine.
 	var list: Array[ZoneData] = []
-	list.append(_zone("hameau", "Hameau de l'Aube", Vector2(-120, 30),
-		Color(0.78, 0.66, 0.45), "Un village paisible : taverne, forge et marché. Ton refuge.", false, true))
-	list.append(_zone("clairiere", "Clairière d'Émeraude", Vector2(-420, -150),
-		Color(0.30, 0.58, 0.35), "Une forêt paisible baignée de lumière verte."))
-	list.append(_zone("givre", "Cols de Givre", Vector2(380, -230),
-		Color(0.55, 0.7, 0.85), "Des cols enneigés balayés par le vent glacé."))
-	list.append(_zone("marais", "Marais d'Ombre", Vector2(-330, 250),
-		Color(0.4, 0.45, 0.3), "Un marécage brumeux où rôdent les morts."))
-	list.append(_zone("ruines", "Cité en Ruines", Vector2(430, 210),
-		Color(0.6, 0.55, 0.45), "Les vestiges d'une cité jadis glorieuse."))
-	list.append(_zone("sanctuaire", "Sanctuaire Oublié", Vector2(10, -330),
-		Color(0.85, 0.78, 0.5), "Un lieu sacré au calme inquiétant.", false))
+	list.append(_zone("hameau", "Hameau de l'Aube", Vector2(140, 60),
+		Color(0.74, 0.62, 0.42), "Un village de bois : taverne, forge et marché. Ton refuge.", false, true))
+	list.append(_zone("clairiere", "Clairière d'Émeraude", Vector2(-320, -80),
+		Color(0.26, 0.5, 0.32), "Une forêt profonde, vivante, où la lumière filtre entre les arbres."))
 	return list
