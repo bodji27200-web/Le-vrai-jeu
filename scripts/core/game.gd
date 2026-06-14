@@ -3,8 +3,17 @@
 extends Node
 
 var current_zone: ZoneData = null
-## Équipe composée par le joueur (UI de sélection). Vide = trio de démo.
+## Équipe persistante (progression conservée entre les combats).
+## Vide au démarrage : initialisée à la demande depuis le contenu (trio de démo).
 var active_party: Array[CharacterData] = []
+
+
+## Renvoie l'équipe persistante, en l'initialisant depuis le contenu si besoin.
+## C'est CE tableau qui gagne de l'XP et monte en niveau au fil des combats.
+func get_party() -> Array[CharacterData]:
+	if active_party.is_empty():
+		active_party = ContentDB.party()
+	return active_party
 
 
 func goto_overworld() -> void:

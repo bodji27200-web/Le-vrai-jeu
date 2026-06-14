@@ -11,19 +11,25 @@ func _initialize() -> void:
 	assert(ContentDB.demo_encounter().size() == 3)
 	assert(not ContentDB.zones().is_empty())
 
-	# Le 3e héros est le Nécromancien avec sa spécialisation.
-	var necro := Combatant.from_character(party[2])
-	print("Necro: ", necro.display_name, " | spé summon_hp x", necro.summon_hp_mult, " summon_dmg x", necro.summon_damage_mult)
-	assert(necro.summon_hp_mult > 1.0)  # Seigneur de la Charogne
+	# Tous les héros démarrent NIVEAU 1 sans spécialisation (progression en jeu).
+	for c in party:
+		assert(c.level == 1 and c.chosen_specialization == null)
 
-	# Fabrique chaque invocation via une compétence d'invocation.
+	# Le 3e héros est le Nécromancien : ses invocations sont dispo dès le niv.1.
+	var necro := Combatant.from_character(party[2])
+	assert(necro.summon_hp_mult == 1.0)   # pas encore de spé
 	for sk in necro.skills:
 		if sk.summon != null:
 			var s := Combatant.from_summon(sk.summon, necro)
-			print("  Invocation: %s | PV %d | dmg %d | taunt %s | atk/tour %d" % [
-				s.display_name, s.max_health, s.base_damage, s.taunt, s.attacks_per_turn])
-			# Les mults de spé sont appliqués.
+			print("  Invocation: %s | PV %d | taunt %s | atk/tour %d" % [
+				s.display_name, s.max_health, s.taunt, s.attacks_per_turn])
 			assert(s.max_health == int(round(sk.summon.stats.max_health * necro.summon_hp_mult)))
+
+	# Avec la spé "Seigneur de la Charogne", les invocations deviennent costaudes.
+	var necro_cd := ContentLibrary.make_member("N", ContentLibrary.necromancer_class())
+	necro_cd.level = 5
+	necro_cd.chosen_specialization = necro_cd.character_class.specializations[0]
+	assert(Combatant.from_character(necro_cd).summon_hp_mult > 1.0)
 
 	# Aggro : un tank (taunt) doit attirer la majorité des attaques.
 	var allies: Array = []
@@ -150,5 +156,24 @@ func _initialize() -> void:
 	assert(monk.is_alive() and not monk.skills.is_empty())
 	print("make_member : %s niv.%d, %d compétences débloquées" % [member.display_name, member.level, monk.skills.size()])
 
-	print("OK : invocations + spé + aggro + IA + classes profondes + composition d'équipe validés.")
+	# --- Progression : XP, montée de niveau, déblocage de spé au niv.5 ---
+	assert(Progression.xp_for_next(1) < Progression.xp_for_next(2))   # coût croissant
+	assert(Progression.xp_for_next(2) < Progression.xp_for_next(5))
+	var hero := ContentLibrary.make_member("Hero", ContentLibrary.guardian_class())
+	assert(hero.level == 1 and hero.chosen_specialization == null)
+	assert(not Progression.can_choose_spec(hero))   # pas avant le niv.5
+	var res := Progression.gain_xp(hero, 2000)
+	print("Progression : 2000 XP → niveau %d (a gagné des niveaux : %s)" % [hero.level, str(res.leveled)])
+	assert(res.leveled and hero.level >= Progression.SPEC_UNLOCK_LEVEL)
+	assert(Progression.can_choose_spec(hero))       # spé débloquée à >= niv.5
+	# Un combat de démo rapporte de l'XP.
+	var battle_xp := 0
+	for e in ContentLibrary.demo_encounter():
+		battle_xp += e.xp_reward
+	print("XP d'un combat de démo : ", battle_xp)
+	assert(battle_xp > 0)
+	# La récompense est bien transmise au combattant.
+	assert(Combatant.from_enemy(ContentLibrary.demo_boss()).xp_reward > 0)
+
+	print("OK : invocations + spé + aggro + IA + classes profondes + progression XP/niveaux validés.")
 	quit()

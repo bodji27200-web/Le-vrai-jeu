@@ -25,6 +25,7 @@ var _enemies: Array[Combatant] = []
 var _views := {}                       ## Combatant -> CombatantView
 var _last_target: Combatant = null     ## Pour varier le ciblage ennemi.
 var _round := 0
+var _battle_xp := 0                     ## XP totale de la rencontre (somme des ennemis).
 var _camera: BattleCamera
 var _stage: BattleStage                 ## Décor isométrique (fond + sol).
 var _field: Node2D                      ## Combattants, triés en profondeur (y-sort).
@@ -106,14 +107,13 @@ func _register_defense(kind: String) -> void:
 # =============================================================================
 
 func _build_teams() -> void:
-	# Équipe composée par le joueur si elle existe, sinon trio de démo.
-	var members: Array[CharacterData] = ContentDB.party()
-	if not Game.active_party.is_empty():
-		members = Game.active_party
-	for c in members:
+	# Équipe PERSISTANTE (la même d'un combat à l'autre, elle gagne de l'XP).
+	for c in Game.get_party():
 		_players.append(Combatant.from_character(c))
 	for e in ContentDB.demo_encounter():
-		_enemies.append(Combatant.from_enemy(e))
+		var foe := Combatant.from_enemy(e)
+		_enemies.append(foe)
+		_battle_xp += foe.xp_reward
 
 
 func _build_views() -> void:
@@ -806,6 +806,10 @@ func _show_end_screen() -> void:
 	var won := not _alive(_players).is_empty()
 	var title := _make_label("VICTOIRE !" if won else "DÉFAITE...", 40)
 	_end_box.add_child(title)
+
+	if won:
+		_award_xp()
+
 	var cont := Button.new()
 	cont.text = "Continuer" if won else "Réessayer"
 	cont.custom_minimum_size = Vector2(220, 60)
@@ -816,3 +820,33 @@ func _show_end_screen() -> void:
 	_end_box.add_child(cont)
 	_end_box.visible = true
 	_log("[b]%s[/b]" % ("Victoire !" if won else "Défaite..."))
+
+
+## Récompense d'XP à la victoire : toute l'équipe persistante gagne l'XP de la
+## rencontre, monte de niveau, débloque des compétences (et la spé au niv.5).
+func _award_xp() -> void:
+	var party := Game.get_party()
+	if party.is_empty() or _battle_xp <= 0:
+		return
+	_end_box.add_child(_make_label("Expérience : +%d XP" % _battle_xp, 22))
+	for cd in party:
+		var res := Progression.gain_xp(cd, _battle_xp)
+		var line := ""
+		if res.leveled:
+			line = "%s  niveau %d → %d !" % [cd.display_name, res.from, res.to]
+		else:
+			line = "%s  niv.%d  (%d/%d XP)" % [cd.display_name, cd.level, cd.xp, Progression.xp_for_next(cd.level)]
+		var lbl := _make_label(line, 17)
+		if res.leveled:
+			lbl.add_theme_color_override("font_color", Color(0.6, 1.0, 0.6))
+		_end_box.add_child(lbl)
+		# Nouvelles compétences débloquées par la montée de niveau.
+		for sk in Progression.newly_unlocked_skills(cd.character_class, res.from, res.to):
+			var sl := _make_label("    → nouvelle compétence : %s" % sk.display_name, 14)
+			sl.add_theme_color_override("font_color", Color(0.7, 0.95, 1.0))
+			_end_box.add_child(sl)
+		# Spécialisation désormais disponible (choix dans le menu Équipe).
+		if Progression.can_choose_spec(cd):
+			var pl := _make_label("    ★ %s peut choisir sa spécialisation — menu Équipe (touche P)" % cd.display_name, 14)
+			pl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
+			_end_box.add_child(pl)

@@ -1,67 +1,64 @@
-[gd_resource type="Resource" script_class="EncounterData" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="EncounterData" format=3]
 
-[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_f4e2n"]
-[ext_resource type="Script" path="res://scripts/data/stat_block.gd" id="2_2dckj"]
-[ext_resource type="Script" path="res://scripts/data/encounter_data.gd" id="3_kbtla"]
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_fqcnd"]
+[ext_resource type="Script" path="res://scripts/data/stat_block.gd" id="2_xhpq5"]
+[ext_resource type="Script" path="res://scripts/data/encounter_data.gd" id="3_uw2ww"]
 
-[sub_resource type="Resource" id="Resource_8u831"]
-script = ExtResource("2_2dckj")
+[sub_resource type="Resource" id="Resource_ysm8q"]
+script = ExtResource("2_xhpq5")
 max_health = 420
 strength = 24
 defense = 14
 agility = 12
 crit_chance = 0.07
 
-[sub_resource type="Resource" id="Resource_tasb8"]
-script = ExtResource("1_f4e2n")
+[sub_resource type="Resource" id="Resource_omf3p"]
+script = ExtResource("1_fqcnd")
 display_name = "Chevalier Déchu"
-stats = SubResource("Resource_8u831")
-archetype = 0
+stats = SubResource("Resource_ysm8q")
 is_boss = true
 base_damage = 22
 element = 6
 sprite_kind = "boss_chevalier"
 attack_sequences = Array[int]([1, 3, 5])
+xp_reward = 60
 
-[sub_resource type="Resource" id="Resource_y3lmj"]
-script = ExtResource("2_2dckj")
+[sub_resource type="Resource" id="Resource_2xme8"]
+script = ExtResource("2_xhpq5")
 max_health = 120
 strength = 12
 defense = 18
 agility = 9
 crit_chance = 0.0
 
-[sub_resource type="Resource" id="Resource_hi15n"]
-script = ExtResource("1_f4e2n")
+[sub_resource type="Resource" id="Resource_om5sj"]
+script = ExtResource("1_fqcnd")
 display_name = "Garde Squelette"
-stats = SubResource("Resource_y3lmj")
+stats = SubResource("Resource_2xme8")
 archetype = 3
-is_boss = false
-base_damage = 12
-element = 0
 sprite_kind = "garde_squelette"
 attack_sequences = Array[int]([1, 2])
+xp_reward = 22
 
-[sub_resource type="Resource" id="Resource_erb3q"]
-script = ExtResource("2_2dckj")
+[sub_resource type="Resource" id="Resource_gk45r"]
+script = ExtResource("2_xhpq5")
 max_health = 90
 strength = 8
 defense = 8
 agility = 13
 crit_chance = 0.0
 
-[sub_resource type="Resource" id="Resource_6lle8"]
-script = ExtResource("1_f4e2n")
+[sub_resource type="Resource" id="Resource_jyy1r"]
+script = ExtResource("1_fqcnd")
 display_name = "Acolyte Profane"
-stats = SubResource("Resource_erb3q")
+stats = SubResource("Resource_gk45r")
 archetype = 4
-is_boss = false
 base_damage = 8
 element = 6
 sprite_kind = "acolyte"
-attack_sequences = Array[int]([1])
+xp_reward = 18
 
 [resource]
-script = ExtResource("3_kbtla")
+script = ExtResource("3_uw2ww")
 display_name = "Rencontre de démonstration"
-enemies = Array[ExtResource("1_f4e2n")]([SubResource("Resource_tasb8"), SubResource("Resource_hi15n"), SubResource("Resource_6lle8")])
+enemies = Array[ExtResource("1_fqcnd")]([SubResource("Resource_omf3p"), SubResource("Resource_om5sj"), SubResource("Resource_jyy1r")])

@@ -1,46 +1,42 @@
-[gd_resource type="Resource" script_class="WorldData" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="WorldData" format=3]
 
-[ext_resource type="Script" path="res://scripts/data/world_data.gd" id="1_j8g5h"]
-[ext_resource type="Script" path="res://scripts/data/zone_data.gd" id="2_j0p8i"]
+[ext_resource type="Script" path="res://scripts/data/world_data.gd" id="1_woyh5"]
+[ext_resource type="Script" path="res://scripts/data/zone_data.gd" id="2_js3fp"]
 
-[sub_resource type="Resource" id="Resource_veqmc"]
-script = ExtResource("2_j0p8i")
+[sub_resource type="Resource" id="Resource_hojw7"]
+script = ExtResource("2_js3fp")
 id = "clairiere"
 display_name = "Clairière d'Émeraude"
 overworld_position = Vector2(-420, -150)
 theme_color = Color(0.3, 0.58, 0.35, 1)
 description = "Une forêt paisible baignée de lumière verte."
-has_encounter = true
 
-[sub_resource type="Resource" id="Resource_41ibv"]
-script = ExtResource("2_j0p8i")
+[sub_resource type="Resource" id="Resource_f3xom"]
+script = ExtResource("2_js3fp")
 id = "givre"
 display_name = "Cols de Givre"
 overworld_position = Vector2(380, -230)
 theme_color = Color(0.55, 0.7, 0.85, 1)
 description = "Des cols enneigés balayés par le vent glacé."
-has_encounter = true
 
-[sub_resource type="Resource" id="Resource_7vl48"]
-script = ExtResource("2_j0p8i")
+[sub_resource type="Resource" id="Resource_hdhrg"]
+script = ExtResource("2_js3fp")
 id = "marais"
 display_name = "Marais d'Ombre"
 overworld_position = Vector2(-330, 250)
 theme_color = Color(0.4, 0.45, 0.3, 1)
 description = "Un marécage brumeux où rôdent les morts."
-has_encounter = true
 
-[sub_resource type="Resource" id="Resource_x5flm"]
-script = ExtResource("2_j0p8i")
+[sub_resource type="Resource" id="Resource_qxl63"]
+script = ExtResource("2_js3fp")
 id = "ruines"
 display_name = "Cité en Ruines"
 overworld_position = Vector2(430, 210)
 theme_color = Color(0.6, 0.55, 0.45, 1)
 description = "Les vestiges d'une cité jadis glorieuse."
-has_encounter = true
 
-[sub_resource type="Resource" id="Resource_sevc4"]
-script = ExtResource("2_j0p8i")
+[sub_resource type="Resource" id="Resource_t1yd2"]
+script = ExtResource("2_js3fp")
 id = "sanctuaire"
 display_name = "Sanctuaire Oublié"
 overworld_position = Vector2(10, -330)
@@ -49,5 +45,5 @@ description = "Un lieu sacré au calme inquiétant."
 has_encounter = false
 
 [resource]
-script = ExtResource("1_j8g5h")
-zones = Array[ExtResource("2_j0p8i")]([SubResource("Resource_veqmc"), SubResource("Resource_41ibv"), SubResource("Resource_7vl48"), SubResource("Resource_x5flm"), SubResource("Resource_sevc4")])
+script = ExtResource("1_woyh5")
+zones = Array[ExtResource("2_js3fp")]([SubResource("Resource_hojw7"), SubResource("Resource_f3xom"), SubResource("Resource_hdhrg"), SubResource("Resource_qxl63"), SubResource("Resource_t1yd2")])

@@ -13,3 +13,4 @@ extends Resource
 @export var sprite_kind: String = ""   ## Clé du sprite pixel art (cf. PixelArt).
 ## Options de séquences (ex : [1, 3, 5] = le boss choisit 1, 3 ou 5 coups).
 @export var attack_sequences: Array[int] = [1]
+@export var xp_reward: int = 0          ## XP donnée à l'équipe quand il est vaincu.

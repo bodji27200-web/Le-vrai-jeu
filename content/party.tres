@@ -1,398 +1,305 @@
-[gd_resource type="Resource" script_class="PartyData" load_steps=46 format=3]
+[gd_resource type="Resource" script_class="PartyData" format=3]
 
-[ext_resource type="Script" path="res://scripts/data/character_data.gd" id="1_oj8hp"]
-[ext_resource type="Script" path="res://scripts/data/stat_block.gd" id="2_bvr8i"]
-[ext_resource type="Script" path="res://scripts/data/class_data.gd" id="3_2r1w0"]
-[ext_resource type="Script" path="res://scripts/data/skill_data.gd" id="4_uysb6"]
-[ext_resource type="Script" path="res://scripts/data/specialization_data.gd" id="5_of4oj"]
-[ext_resource type="Script" path="res://scripts/data/weapon_data.gd" id="6_3b4pl"]
-[ext_resource type="Script" path="res://scripts/data/summon_data.gd" id="7_n367b"]
-[ext_resource type="Script" path="res://scripts/data/party_data.gd" id="8_baqeo"]
+[ext_resource type="Script" path="res://scripts/data/character_data.gd" id="1_8avrk"]
+[ext_resource type="Script" path="res://scripts/data/stat_block.gd" id="2_fxtgx"]
+[ext_resource type="Script" path="res://scripts/data/class_data.gd" id="3_55hu0"]
+[ext_resource type="Script" path="res://scripts/data/skill_data.gd" id="4_oiqne"]
+[ext_resource type="Script" path="res://scripts/data/specialization_data.gd" id="5_bs6f2"]
+[ext_resource type="Script" path="res://scripts/data/weapon_data.gd" id="6_xxa72"]
+[ext_resource type="Script" path="res://scripts/data/summon_data.gd" id="7_26net"]
+[ext_resource type="Script" path="res://scripts/data/party_data.gd" id="8_ser80"]
 
-[sub_resource type="Resource" id="Resource_fhmeu"]
-script = ExtResource("2_bvr8i")
+[sub_resource type="Resource" id="Resource_45pnw"]
+script = ExtResource("2_fxtgx")
 max_health = 160
 strength = 14
 defense = 18
 agility = 8
-crit_chance = 0.05
 
-[sub_resource type="Resource" id="Resource_dk36b"]
-script = ExtResource("2_bvr8i")
+[sub_resource type="Resource" id="Resource_v3f34"]
+script = ExtResource("2_fxtgx")
 max_health = 18
 strength = 2
 defense = 3
 agility = 1
 crit_chance = 0.0
 
-[sub_resource type="Resource" id="Resource_4dc1w"]
-script = ExtResource("4_uysb6")
+[sub_resource type="Resource" id="Resource_542n7"]
+script = ExtResource("4_oiqne")
 display_name = "Frappe du Gardien"
 mana_cost = 3
 power = 1.4
-target_type = 0
-element = 0
 description = "Coup lourd et fiable."
-hits = 1
-heal_power = 0.0
-unlock_level = 1
 
-[sub_resource type="Resource" id="Resource_mtlt4"]
-script = ExtResource("4_uysb6")
+[sub_resource type="Resource" id="Resource_gpk88"]
+script = ExtResource("4_oiqne")
 display_name = "Second Souffle"
 mana_cost = 4
-power = 1.0
 target_type = 2
 element = 5
 description = "Le gardien puise dans sa volonté et se soigne."
-hits = 1
 heal_power = 1.0
-unlock_level = 1
 
-[sub_resource type="Resource" id="Resource_3lcn8"]
-script = ExtResource("4_uysb6")
+[sub_resource type="Resource" id="Resource_4eb52"]
+script = ExtResource("4_oiqne")
 display_name = "Riposte Sacrée"
 mana_cost = 5
 power = 1.9
-target_type = 0
 element = 5
 description = "Punition divine coûteuse."
-hits = 1
-heal_power = 0.0
 unlock_level = 3
 
-[sub_resource type="Resource" id="Resource_wa0c3"]
-script = ExtResource("5_of4oj")
+[sub_resource type="Resource" id="Resource_wp670"]
+script = ExtResource("5_bs6f2")
 display_name = "Rempart"
 description = "PV très supérieurs : un véritable mur qui encaisse pour l'équipe."
-summon_hp_mult = 1.0
-summon_damage_mult = 1.0
-skill_power_mult = 1.0
-mana_on_summon_death = 0
-crit_bonus = 0.0
 heal_power_mult = 1.2
 max_health_mult = 1.25
 
-[sub_resource type="Resource" id="Resource_4rdjx"]
-script = ExtResource("5_of4oj")
+[sub_resource type="Resource" id="Resource_wuhld"]
+script = ExtResource("5_bs6f2")
 display_name = "Templier"
 description = "Foi offensive : ses sorts sacrés frappent bien plus fort."
-summon_hp_mult = 1.0
-summon_damage_mult = 1.0
 skill_power_mult = 1.35
-mana_on_summon_death = 0
 crit_bonus = 0.05
-heal_power_mult = 1.0
-max_health_mult = 1.0
 
-[sub_resource type="Resource" id="Resource_jdooh"]
-script = ExtResource("3_2r1w0")
+[sub_resource type="Resource" id="Resource_igqji"]
+script = ExtResource("3_55hu0")
 display_name = "Gardien"
-base_stats = SubResource("Resource_fhmeu")
-growth_per_level = SubResource("Resource_dk36b")
-skills = Array[ExtResource("4_uysb6")]([SubResource("Resource_4dc1w"), SubResource("Resource_mtlt4"), SubResource("Resource_3lcn8")])
-specializations = Array[ExtResource("5_of4oj")]([SubResource("Resource_wa0c3"), SubResource("Resource_4rdjx")])
+base_stats = SubResource("Resource_45pnw")
+growth_per_level = SubResource("Resource_v3f34")
+skills = Array[ExtResource("4_oiqne")]([SubResource("Resource_542n7"), SubResource("Resource_gpk88"), SubResource("Resource_4eb52")])
+specializations = Array[ExtResource("5_bs6f2")]([SubResource("Resource_wp670"), SubResource("Resource_wuhld")])
 sprite_kind = "gardien"
 identity = "Mur du groupe. Récompense la parade par sa survie."
 
-[sub_resource type="Resource" id="Resource_0cn7p"]
-script = ExtResource("6_3b4pl")
+[sub_resource type="Resource" id="Resource_i3y4h"]
+script = ExtResource("6_xxa72")
 display_name = "Égide de Fer"
-element = 0
 rarity = 1
-level = 1
 base_damage = 10
-strength_scaling = 1.0
-lore = ""
 
-[sub_resource type="Resource" id="Resource_e42q3"]
-script = ExtResource("1_oj8hp")
+[sub_resource type="Resource" id="Resource_phkau"]
+script = ExtResource("1_8avrk")
 display_name = "Aldric"
-character_class = SubResource("Resource_jdooh")
-weapon = SubResource("Resource_0cn7p")
-level = 3
-chosen_specialization = SubResource("Resource_wa0c3")
+character_class = SubResource("Resource_igqji")
+weapon = SubResource("Resource_i3y4h")
 
-[sub_resource type="Resource" id="Resource_bgolu"]
-script = ExtResource("2_bvr8i")
+[sub_resource type="Resource" id="Resource_s051n"]
+script = ExtResource("2_fxtgx")
 max_health = 95
 strength = 20
 defense = 7
 agility = 11
 crit_chance = 0.08
 
-[sub_resource type="Resource" id="Resource_cogxb"]
-script = ExtResource("2_bvr8i")
+[sub_resource type="Resource" id="Resource_6ppmc"]
+script = ExtResource("2_fxtgx")
 max_health = 9
 strength = 4
 defense = 1
 agility = 2
 crit_chance = 0.005
 
-[sub_resource type="Resource" id="Resource_4fduh"]
-script = ExtResource("4_uysb6")
+[sub_resource type="Resource" id="Resource_551ar"]
+script = ExtResource("4_oiqne")
 display_name = "Trait de Feu"
 mana_cost = 2
 power = 1.3
-target_type = 0
 element = 1
 description = "Sort rapide et économe."
-hits = 1
-heal_power = 0.0
-unlock_level = 1
 
-[sub_resource type="Resource" id="Resource_qqs7a"]
-script = ExtResource("4_uysb6")
+[sub_resource type="Resource" id="Resource_63087"]
+script = ExtResource("4_oiqne")
 display_name = "Salve de Flammes"
 mana_cost = 4
 power = 0.7
-target_type = 0
 element = 1
 description = "Trois jets de feu en rafale."
 hits = 3
-heal_power = 0.0
-unlock_level = 1
 
-[sub_resource type="Resource" id="Resource_ofm2x"]
-script = ExtResource("4_uysb6")
+[sub_resource type="Resource" id="Resource_t0ikr"]
+script = ExtResource("4_oiqne")
 display_name = "Embrasement"
 mana_cost = 6
 power = 2.4
-target_type = 0
 element = 1
 description = "Explosion dévastatrice."
-hits = 1
-heal_power = 0.0
 unlock_level = 3
 
-[sub_resource type="Resource" id="Resource_sacy0"]
-script = ExtResource("5_of4oj")
+[sub_resource type="Resource" id="Resource_eavg7"]
+script = ExtResource("5_bs6f2")
 display_name = "Brasier"
 description = "Maîtrise du feu pur : tous les sorts gagnent en puissance brute."
-summon_hp_mult = 1.0
-summon_damage_mult = 1.0
 skill_power_mult = 1.35
-mana_on_summon_death = 0
-crit_bonus = 0.0
-heal_power_mult = 1.0
-max_health_mult = 1.0
 
-[sub_resource type="Resource" id="Resource_tus4v"]
-script = ExtResource("5_of4oj")
+[sub_resource type="Resource" id="Resource_i6dpv"]
+script = ExtResource("5_bs6f2")
 display_name = "Pyrokinésie"
 description = "Combustion instable : forte chance de critique sur chaque sort."
-summon_hp_mult = 1.0
-summon_damage_mult = 1.0
 skill_power_mult = 1.1
-mana_on_summon_death = 0
 crit_bonus = 0.12
-heal_power_mult = 1.0
-max_health_mult = 1.0
 
-[sub_resource type="Resource" id="Resource_v268p"]
-script = ExtResource("3_2r1w0")
+[sub_resource type="Resource" id="Resource_ra2gw"]
+script = ExtResource("3_55hu0")
 display_name = "Pyromancien"
-base_stats = SubResource("Resource_bgolu")
-growth_per_level = SubResource("Resource_cogxb")
-skills = Array[ExtResource("4_uysb6")]([SubResource("Resource_4fduh"), SubResource("Resource_qqs7a"), SubResource("Resource_ofm2x")])
-specializations = Array[ExtResource("5_of4oj")]([SubResource("Resource_sacy0"), SubResource("Resource_tus4v")])
+base_stats = SubResource("Resource_s051n")
+growth_per_level = SubResource("Resource_6ppmc")
+skills = Array[ExtResource("4_oiqne")]([SubResource("Resource_551ar"), SubResource("Resource_63087"), SubResource("Resource_t0ikr")])
+specializations = Array[ExtResource("5_bs6f2")]([SubResource("Resource_eavg7"), SubResource("Resource_i6dpv")])
 sprite_kind = "pyromancien"
 identity = "Dégâts massifs, mais fragile : doit gérer son mana et parer."
 
-[sub_resource type="Resource" id="Resource_q607m"]
-script = ExtResource("6_3b4pl")
+[sub_resource type="Resource" id="Resource_64twt"]
+script = ExtResource("6_xxa72")
 display_name = "Bâton de Braise"
 element = 1
 rarity = 2
-level = 1
 base_damage = 7
-strength_scaling = 1.0
-lore = ""
 
-[sub_resource type="Resource" id="Resource_6tjn8"]
-script = ExtResource("1_oj8hp")
+[sub_resource type="Resource" id="Resource_refw6"]
+script = ExtResource("1_8avrk")
 display_name = "Lyse"
-character_class = SubResource("Resource_v268p")
-weapon = SubResource("Resource_q607m")
-level = 3
-chosen_specialization = SubResource("Resource_sacy0")
+character_class = SubResource("Resource_ra2gw")
+weapon = SubResource("Resource_64twt")
 
-[sub_resource type="Resource" id="Resource_1b8dm"]
-script = ExtResource("2_bvr8i")
-max_health = 100
+[sub_resource type="Resource" id="Resource_skaly"]
+script = ExtResource("2_fxtgx")
 strength = 16
 defense = 9
-agility = 10
 crit_chance = 0.06
 
-[sub_resource type="Resource" id="Resource_ylecv"]
-script = ExtResource("2_bvr8i")
+[sub_resource type="Resource" id="Resource_rbwec"]
+script = ExtResource("2_fxtgx")
 max_health = 10
 strength = 3
 defense = 1
 agility = 2
 crit_chance = 0.0
 
-[sub_resource type="Resource" id="Resource_01v0v"]
-script = ExtResource("2_bvr8i")
+[sub_resource type="Resource" id="Resource_4m0hu"]
+script = ExtResource("2_fxtgx")
 max_health = 140
 strength = 8
 defense = 22
 agility = 6
 crit_chance = 0.0
 
-[sub_resource type="Resource" id="Resource_gybla"]
-script = ExtResource("7_n367b")
+[sub_resource type="Resource" id="Resource_1yogo"]
+script = ExtResource("7_26net")
 display_name = "Zombie Cuirassé"
 role = 0
-stats = SubResource("Resource_01v0v")
+stats = SubResource("Resource_4m0hu")
 base_damage = 8
-attacks_per_turn = 1
 taunt = true
 body_color = Color(0.45, 0.55, 0.4, 1)
 sprite_kind = "zombie"
 
-[sub_resource type="Resource" id="Resource_1byuf"]
-script = ExtResource("4_uysb6")
+[sub_resource type="Resource" id="Resource_4pvs2"]
+script = ExtResource("4_oiqne")
 display_name = "Lever un Zombie"
 mana_cost = 4
-power = 1.0
-target_type = 0
 element = 6
 description = "Invoque un tank qui encaisse les coups (provocation)."
-hits = 1
-heal_power = 0.0
-unlock_level = 1
-summon = SubResource("Resource_gybla")
+summon = SubResource("Resource_1yogo")
 
-[sub_resource type="Resource" id="Resource_0gqaf"]
-script = ExtResource("2_bvr8i")
+[sub_resource type="Resource" id="Resource_0b3ed"]
+script = ExtResource("2_fxtgx")
 max_health = 70
 strength = 14
 defense = 6
 agility = 20
 crit_chance = 0.1
 
-[sub_resource type="Resource" id="Resource_m72p6"]
-script = ExtResource("7_n367b")
+[sub_resource type="Resource" id="Resource_x0apv"]
+script = ExtResource("7_26net")
 display_name = "Goule Rapide"
 role = 1
-stats = SubResource("Resource_0gqaf")
+stats = SubResource("Resource_0b3ed")
 base_damage = 11
 attacks_per_turn = 2
-taunt = false
 body_color = Color(0.6, 0.4, 0.7, 1)
 sprite_kind = "goule"
 
-[sub_resource type="Resource" id="Resource_ydhdp"]
-script = ExtResource("4_uysb6")
+[sub_resource type="Resource" id="Resource_scav4"]
+script = ExtResource("4_oiqne")
 display_name = "Invoquer une Goule"
 mana_cost = 3
-power = 1.0
-target_type = 0
 element = 6
 description = "Invoque une goule rapide qui frappe deux fois."
-hits = 1
-heal_power = 0.0
-unlock_level = 1
-summon = SubResource("Resource_m72p6")
+summon = SubResource("Resource_x0apv")
 
-[sub_resource type="Resource" id="Resource_1y65b"]
-script = ExtResource("2_bvr8i")
+[sub_resource type="Resource" id="Resource_d2mv3"]
+script = ExtResource("2_fxtgx")
 max_health = 90
 strength = 20
 defense = 8
 agility = 11
 crit_chance = 0.12
 
-[sub_resource type="Resource" id="Resource_3p1kb"]
-script = ExtResource("7_n367b")
+[sub_resource type="Resource" id="Resource_luuk5"]
+script = ExtResource("7_26net")
 display_name = "Aberration"
-role = 2
-stats = SubResource("Resource_1y65b")
+stats = SubResource("Resource_d2mv3")
 base_damage = 18
-attacks_per_turn = 1
-taunt = false
 body_color = Color(0.85, 0.45, 0.3, 1)
 sprite_kind = "aberration"
 
-[sub_resource type="Resource" id="Resource_733hg"]
-script = ExtResource("4_uysb6")
+[sub_resource type="Resource" id="Resource_7eeii"]
+script = ExtResource("4_oiqne")
 display_name = "Convoquer une Aberration"
 mana_cost = 5
-power = 1.0
-target_type = 0
 element = 6
 description = "Invoque une créature offensive dévastatrice."
-hits = 1
-heal_power = 0.0
-unlock_level = 1
-summon = SubResource("Resource_3p1kb")
+summon = SubResource("Resource_luuk5")
 
-[sub_resource type="Resource" id="Resource_6u253"]
-script = ExtResource("4_uysb6")
+[sub_resource type="Resource" id="Resource_dk81d"]
+script = ExtResource("4_oiqne")
 display_name = "Éclat d'Ossements"
 mana_cost = 2
 power = 1.4
-target_type = 0
 element = 6
 description = "Projection osseuse : dégâts directs."
-hits = 1
-heal_power = 0.0
-unlock_level = 1
 
-[sub_resource type="Resource" id="Resource_tikh3"]
-script = ExtResource("5_of4oj")
+[sub_resource type="Resource" id="Resource_ogpl7"]
+script = ExtResource("5_bs6f2")
 display_name = "Seigneur de la Charogne"
 description = "Invocations bien plus robustes et puissantes. On gagne par l'armée."
 summon_hp_mult = 1.4
 summon_damage_mult = 1.25
-skill_power_mult = 1.0
-mana_on_summon_death = 0
-crit_bonus = 0.0
-heal_power_mult = 1.0
-max_health_mult = 1.0
 
-[sub_resource type="Resource" id="Resource_cqxbd"]
-script = ExtResource("5_of4oj")
+[sub_resource type="Resource" id="Resource_60lyd"]
+script = ExtResource("5_bs6f2")
 display_name = "Faucheur d'Âmes"
 description = "Invocations sacrifiables ; sorts directs surpuissants et mana au sacrifice."
 summon_hp_mult = 0.85
 summon_damage_mult = 0.9
 skill_power_mult = 1.5
 mana_on_summon_death = 2
-crit_bonus = 0.0
-heal_power_mult = 1.0
-max_health_mult = 1.0
 
-[sub_resource type="Resource" id="Resource_v13vb"]
-script = ExtResource("3_2r1w0")
+[sub_resource type="Resource" id="Resource_x7xgm"]
+script = ExtResource("3_55hu0")
 display_name = "Nécromancien"
-base_stats = SubResource("Resource_1b8dm")
-growth_per_level = SubResource("Resource_ylecv")
-skills = Array[ExtResource("4_uysb6")]([SubResource("Resource_1byuf"), SubResource("Resource_ydhdp"), SubResource("Resource_733hg"), SubResource("Resource_6u253")])
-specializations = Array[ExtResource("5_of4oj")]([SubResource("Resource_tikh3"), SubResource("Resource_cqxbd")])
+base_stats = SubResource("Resource_skaly")
+growth_per_level = SubResource("Resource_rbwec")
+skills = Array[ExtResource("4_oiqne")]([SubResource("Resource_4pvs2"), SubResource("Resource_scav4"), SubResource("Resource_7eeii"), SubResource("Resource_dk81d")])
+specializations = Array[ExtResource("5_bs6f2")]([SubResource("Resource_ogpl7"), SubResource("Resource_60lyd")])
 sprite_kind = "necromancien"
 identity = "Maître des morts : max 2 invocations aux rôles distincts."
 
-[sub_resource type="Resource" id="Resource_krkrx"]
-script = ExtResource("6_3b4pl")
+[sub_resource type="Resource" id="Resource_g5frt"]
+script = ExtResource("6_xxa72")
 display_name = "Grimoire d'Os"
 element = 6
 rarity = 2
-level = 1
 base_damage = 6
-strength_scaling = 1.0
-lore = ""
 
-[sub_resource type="Resource" id="Resource_i8fu0"]
-script = ExtResource("1_oj8hp")
+[sub_resource type="Resource" id="Resource_ik22c"]
+script = ExtResource("1_8avrk")
 display_name = "Mortis"
-character_class = SubResource("Resource_v13vb")
-weapon = SubResource("Resource_krkrx")
-level = 3
-chosen_specialization = SubResource("Resource_tikh3")
+character_class = SubResource("Resource_x7xgm")
+weapon = SubResource("Resource_g5frt")
 
 [resource]
-script = ExtResource("8_baqeo")
-members = Array[ExtResource("1_oj8hp")]([SubResource("Resource_e42q3"), SubResource("Resource_6tjn8"), SubResource("Resource_i8fu0")])
+script = ExtResource("8_ser80")
+members = Array[ExtResource("1_8avrk")]([SubResource("Resource_phkau"), SubResource("Resource_refw6"), SubResource("Resource_ik22c")])

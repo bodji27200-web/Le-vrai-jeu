@@ -188,15 +188,14 @@ Construire dans cet ordre, un système à la fois, en testant avant d'enchaîner
    (`heal_power` + `target_type` SELF/SINGLE_ALLY/ALL_ALLIES, calcul pur
    `CombatResolver.heal_amount`), **déblocage par niveau** (`unlock_level`), specs
    étendues (`crit_bonus`, `heal_power_mult`, `max_health_mult`).
-   **UI de composition d'équipe + arbre de compétences** :
+   **UI d'équipe + arbre de compétences** :
    `scenes/party_select.tscn` (`scripts/world/party_select.gd`), ouverte depuis
    l'overworld par la touche **P**. On parcourt les classes, on consulte l'arbre
-   (compétences débloquées par niveau, verrouillées grisées), on choisit une
-   spécialisation et un niveau, et on assemble jusqu'à 3 héros. L'équipe validée
-   est stockée dans `Game.active_party` et utilisée par le combat (repli sur le
-   trio de démo si vide). L'avatar d'exploration prend le sprite du meneur.
-   Reste : XP/montée de niveau in-game (cf. milestone 6) pour gagner les niveaux
-   au lieu de les choisir, et des nœuds d'arbre à embranchements (choix exclusifs).
+   (compétences débloquées par niveau), on ajoute/retire des héros, et — au
+   niveau 5 — on choisit la spécialisation de chaque héros. L'équipe persistante
+   est dans `Game.active_party`. L'avatar d'exploration prend le sprite du meneur.
+   Reste : nœuds d'arbre à embranchements (choix exclusifs), montée des stats
+   visible.
 3. **IA ennemie par archétype** : ✅ FAIT (`EnemyBrain` : agressif/défensif/
    opportuniste/protecteur/manipulateur réagissant à la situation + groupe de 3
    ennemis de démo). Reste : plus d'archétypes/comportements, réactions à l'échec.
@@ -205,7 +204,16 @@ Construire dans cet ordre, un système à la fois, en testant avant d'enchaîner
    (routines), événements, choix nuancés, plusieurs points d'intérêt par zone.
 5. **Boss avancés** : phases qui changent la *façon de jouer* (pas +dégâts),
    mécaniques propres, philosophie de combat, boss secrets.
-6. **Progression** : niveaux, montée des stats, équipement/rareté/amélioration.
+6. **Progression** : ✅ BASE FAITE. Boucle XP/niveaux (`scripts/core/progression.gd`)
+   gagnée en combat : chaque ennemi donne de l'XP (`EnemyData.xp_reward`), l'équipe
+   **persistante** (`Game.get_party()` / `active_party`) gagne de l'XP à la victoire,
+   monte de niveau (courbe rapide au début puis ralentit), ce qui débloque les
+   compétences (`unlock_level`) et, **au niveau 5**, le choix de spécialisation
+   (`Progression.SPEC_UNLOCK_LEVEL`). Les héros démarrent **niveau 1 sans spé**
+   (plus de niveau choisi à la création). Écran de fin de combat = récap XP/niveaux/
+   nouvelles compétences/spé débloquée. Reste : **sauvegarde** (la progression est
+   en mémoire seulement), montée des stats affichée, **équipement/rareté/amélioration**,
+   armes-identités.
 7. **Compagnons & relations** : recrutement non automatique, confiance/loyauté,
    conséquences (rejoindre, refuser, partir, trahir).
 8. **New Game+ / mémoire des boss** : ennemis qui « ont progressé », plus

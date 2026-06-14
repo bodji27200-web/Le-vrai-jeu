@@ -23,6 +23,7 @@ var crit_chance: float
 var base_damage: int = 5
 var skills: Array[SkillData] = []
 var attack_sequences: Array[int] = [1]
+var xp_reward: int = 0                   ## XP donnée quand cet ennemi est vaincu.
 var sprite_kind := ""                   ## Clé du sprite pixel art.
 
 # --- Invocations -------------------------------------------------------------
@@ -158,5 +159,6 @@ static func from_enemy(e: EnemyData) -> Combatant:
 	cb.crit_chance = s.crit_chance
 	cb.base_damage = int(round(e.base_damage * GameSettings.enemy_damage_scale()))
 	cb.attack_sequences = e.attack_sequences.duplicate()
+	cb.xp_reward = e.xp_reward
 	cb.sprite_kind = e.sprite_kind
 	return cb

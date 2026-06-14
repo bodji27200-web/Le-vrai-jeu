@@ -383,9 +383,9 @@ static func all_classes() -> Array[ClassData]:
 	]
 
 
-## Construit un héros jouable à partir d'une classe, d'une spé et d'un niveau.
-## Donne une arme par défaut correcte (sinon les dégâts seraient ridicules).
-static func make_member(name: String, cls: ClassData, spec: SpecializationData, level: int) -> CharacterData:
+## Construit un héros jouable à partir d'une classe (niveau 1, sans spé par
+## défaut : tout se gagne en jouant). Donne une arme correcte.
+static func make_member(name: String, cls: ClassData, spec: SpecializationData = null, level: int = 1) -> CharacterData:
 	var w := _weapon("Arme de %s" % cls.display_name, 9, GameEnums.Element.NONE, GameEnums.Rarity.RARE)
 	return _character(name, cls, w, level, spec)
 
@@ -394,30 +394,26 @@ static func make_member(name: String, cls: ClassData, spec: SpecializationData, 
 # =============================================================================
 
 ## Trio de démonstration. Chaque membre illustre un style et une mécanique :
-## - Gardien : tanky (spé Rempart), met en valeur la parade et le soin de soi.
+## - Gardien : tanky, met en valeur la parade et le soin de soi.
 ## - Pyromancien : burst + multi-frappes (Salve de Flammes), fragile.
-## - Nécromancien : invocations (spé Seigneur de la Charogne).
+## - Nécromancien : invocations.
+## Tous commencent NIVEAU 1 sans spécialisation : niveaux, compétences et spé
+## (au niv.5) se gagnent en jouant (cf. Progression).
 static func starting_party() -> Array[CharacterData]:
 	var party: Array[CharacterData] = []
 
-	var guardian := guardian_class()
-	party.append(_character("Aldric", guardian,
-		_weapon("Égide de Fer", 10, GameEnums.Element.NONE, GameEnums.Rarity.RARE),
-		3, guardian.specializations[0]))
+	party.append(_character("Aldric", guardian_class(),
+		_weapon("Égide de Fer", 10, GameEnums.Element.NONE, GameEnums.Rarity.RARE)))
 
-	var pyro := pyromancer_class()
-	party.append(_character("Lyse", pyro,
-		_weapon("Bâton de Braise", 7, GameEnums.Element.FIRE, GameEnums.Rarity.EPIC),
-		3, pyro.specializations[0]))
+	party.append(_character("Lyse", pyromancer_class(),
+		_weapon("Bâton de Braise", 7, GameEnums.Element.FIRE, GameEnums.Rarity.EPIC)))
 
-	var necro := necromancer_class()
-	party.append(_character("Mortis", necro,
-		_weapon("Grimoire d'Os", 6, GameEnums.Element.SHADOW, GameEnums.Rarity.EPIC),
-		3, necro.specializations[0]))
+	party.append(_character("Mortis", necromancer_class(),
+		_weapon("Grimoire d'Os", 6, GameEnums.Element.SHADOW, GameEnums.Rarity.EPIC)))
 
 	return party
 
-static func _character(name: String, cls: ClassData, weapon: WeaponData, level: int = 3, spec: SpecializationData = null) -> CharacterData:
+static func _character(name: String, cls: ClassData, weapon: WeaponData, level: int = 1, spec: SpecializationData = null) -> CharacterData:
 	var c := CharacterData.new()
 	c.display_name = name
 	c.character_class = cls
@@ -430,7 +426,7 @@ static func _character(name: String, cls: ClassData, weapon: WeaponData, level: 
 # ENNEMIS
 # =============================================================================
 
-static func _enemy(name: String, boss: bool, arch: GameEnums.Archetype, dmg: int, stats: StatBlock, seqs: Array[int], sprite: String, element: GameEnums.Element = GameEnums.Element.NONE) -> EnemyData:
+static func _enemy(name: String, boss: bool, arch: GameEnums.Archetype, dmg: int, stats: StatBlock, seqs: Array[int], sprite: String, element: GameEnums.Element = GameEnums.Element.NONE, xp: int = 0) -> EnemyData:
 	var e := EnemyData.new()
 	e.display_name = name
 	e.is_boss = boss
@@ -440,12 +436,13 @@ static func _enemy(name: String, boss: bool, arch: GameEnums.Archetype, dmg: int
 	e.attack_sequences = seqs
 	e.sprite_kind = sprite
 	e.element = element
+	e.xp_reward = xp
 	return e
 
 ## Le Chevalier Déchu : boss agressif aux séquences variables (1/3/5 coups).
 static func demo_boss() -> EnemyData:
 	return _enemy("Chevalier Déchu", true, GameEnums.Archetype.AGGRESSIVE, 22,
-		_stats(420, 24, 14, 12, 0.07), [1, 3, 5], "boss_chevalier", GameEnums.Element.SHADOW)
+		_stats(420, 24, 14, 12, 0.07), [1, 3, 5], "boss_chevalier", GameEnums.Element.SHADOW, 60)
 
 ## Rencontre de démo : montre les archétypes d'IA.
 ## - Chevalier Déchu : AGRESSIF (va pour le kill).
@@ -455,7 +452,7 @@ static func demo_encounter() -> Array[EnemyData]:
 	return [
 		demo_boss(),
 		_enemy("Garde Squelette", false, GameEnums.Archetype.PROTECTOR, 12,
-			_stats(120, 12, 18, 9, 0.0), [1, 2], "garde_squelette"),
+			_stats(120, 12, 18, 9, 0.0), [1, 2], "garde_squelette", GameEnums.Element.NONE, 22),
 		_enemy("Acolyte Profane", false, GameEnums.Archetype.MANIPULATOR, 8,
-			_stats(90, 8, 8, 13, 0.0), [1], "acolyte", GameEnums.Element.SHADOW),
+			_stats(90, 8, 8, 13, 0.0), [1], "acolyte", GameEnums.Element.SHADOW, 18),
 	]
