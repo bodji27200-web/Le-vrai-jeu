@@ -30,7 +30,11 @@ func _initialize() -> void:
 				child.pressed.emit()
 				break
 
-	# Le ralenti cinématique ne doit JAMAIS rester actif après coup.
+	# On libère la scène (comme quand le joueur quitte) : le garde-fou _exit_tree
+	# doit ramener Engine.time_scale à 1.0 même si un ralenti était en cours.
+	if is_instance_valid(scn):
+		scn.free()
+	await process_frame
 	assert(is_equal_approx(Engine.time_scale, 1.0), "Engine.time_scale non remis à 1.0 : %f" % Engine.time_scale)
 	print("OK : combat piloté %.1fs sans erreur (letterbox/tour ennemi vu=%s, time_scale=%.2f)." % [
 		(Time.get_ticks_msec() - start) / 1000.0, enemy_turns_seen >= 1, Engine.time_scale])

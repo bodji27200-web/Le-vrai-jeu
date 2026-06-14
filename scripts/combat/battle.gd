@@ -17,9 +17,12 @@ const PARRY_SLOWMO := 0.45   ## Ralenti juste avant le contact (la parade = un i
 const STRIKE_FAST := 0.12    ## Part de l'élan jouée à vitesse normale avant le ralenti.
 
 # --- Placement sur le champ de bataille ---------------------------------------
-const HERO_POS := [Vector2(300, 230), Vector2(300, 350), Vector2(300, 470)]
-const SUMMON_POS := [Vector2(140, 300), Vector2(140, 440)]   ## Max 2 invocations.
-const ENEMY_SLOTS := [Vector2(920, 320), Vector2(740, 200), Vector2(740, 440)]
+# Formation NATURELLE (pas une colonne) : les héros en triangle, meneur avancé ;
+# les ennemis groupés en face, le boss avancé et imposant. Composition lisible
+# en iso + tri en profondeur (y-sort).
+const HERO_POS := [Vector2(380, 392), Vector2(248, 300), Vector2(258, 484)]
+const SUMMON_POS := [Vector2(170, 348), Vector2(170, 452)]   ## Max 2 invocations.
+const ENEMY_SLOTS := [Vector2(852, 384), Vector2(968, 276), Vector2(958, 492)]
 
 # --- État du combat ----------------------------------------------------------
 var _players: Array[Combatant] = []    ## Les héros (déterminent victoire/défaite).
@@ -76,6 +79,12 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if _capturing:
 		_capture_elapsed += delta
+
+
+## Garde-fou : si la scène disparaît pendant le ralenti cinématique (joueur qui
+## quitte, rechargement…), on ne laisse JAMAIS le temps ralenti fuiter globalement.
+func _exit_tree() -> void:
+	Engine.time_scale = 1.0
 
 
 ## Construit la pile de rendu : décor isométrique (fond), terrain trié en
@@ -141,22 +150,25 @@ func _build_views() -> void:
 	for i in _players.size():
 		var v := CombatantView.new()
 		_field.add_child(v)
-		v.setup(_players[i].display_name, _players[i].sprite_kind, Vector2(60, 90), false, Color(0.6, 0.6, 0.65), _players[i].weapon_kind)
+		v.setup(_players[i].display_name, _players[i].sprite_kind, Vector2(82, 122), false, Color(0.6, 0.6, 0.65), _players[i].weapon_kind)
 		v.set_home(HERO_POS[i])
 		_views[_players[i]] = v
 	for i in _enemies.size():
 		var e := _enemies[i]
 		var ev := CombatantView.new()
 		_field.add_child(ev)
-		var size := Vector2(95, 135) if e.is_boss else Vector2(70, 100)
+		# Présence : boss massif, sbires déjà plus imposants qu'avant.
+		var size := Vector2(140, 196) if e.is_boss else Vector2(92, 132)
 		ev.setup(e.display_name, e.sprite_kind, size, true)
-		ev.set_home(ENEMY_SLOTS[i] if i < ENEMY_SLOTS.size() else Vector2(740, 320))
+		ev.set_home(ENEMY_SLOTS[i] if i < ENEMY_SLOTS.size() else Vector2(880, 384))
 		_views[e] = ev
 
-	# Caméra centrée : les coordonnées du monde correspondent à l'écran 1:1.
+	# Caméra : plan plus PROCHE (favorise les personnages), recentrée sur le cœur
+	# de l'action. Le HUD reste stable (CanvasLayer).
 	_camera = BattleCamera.new()
+	_camera.zoom = Vector2(1.18, 1.18)
 	add_child(_camera)
-	_camera.position = get_viewport_rect().size * 0.5
+	_camera.position = Vector2(600, 372)
 	_camera.base_position = _camera.position   # plan large de référence pour reset_view
 
 
@@ -303,6 +315,8 @@ func _player_turn(actor: Combatant) -> void:
 ## Exécute l'attaque du joueur. `hits` > 1 = combo multi-frappes (duelliste, salve).
 func _do_player_attack(actor: Combatant, target: Combatant, power: float, label: String, hits: int) -> void:
 	var actor_view: CombatantView = _views[actor]
+	# La caméra favorise l'unité active : elle accompagne le héros vers sa cible.
+	_camera.focus_on(actor_view.home.lerp(_views[target].home, 0.55), 1.3, 0.22)
 	for h in maxi(1, hits):
 		if not target.is_alive():
 			break
@@ -325,6 +339,7 @@ func _do_player_attack(actor: Combatant, target: Combatant, power: float, label:
 			break
 		if hits > 1:
 			await get_tree().create_timer(0.18).timeout
+	_camera.reset_view(0.4)
 
 
 ## Exécute un soin. Retourne false si le joueur annule (menu rouvert sans coût).
@@ -547,12 +562,13 @@ func _defense_window(attacker: Combatant, defender: Combatant, move_index: int =
 	var impact := CombatantView.WINDUP + CombatantView.STRIKE
 
 	# --- Mise en scène cinématique de l'attaque ------------------------------
-	# Tell : la caméra pousse vers l'attaquant (on cadre attaquant + cible).
-	_camera.focus_on(dv_home.lerp(av_home, 0.6), 1.22, CombatantView.WINDUP * 0.8)
+	# Tell : la caméra cadre l'ATTAQUANT qui s'arme (on lit son intention).
+	_camera.focus_on(dv_home.lerp(av_home, 0.62), 1.26, CombatantView.WINDUP * 0.8)
 	attacker_view.play_attack(dv_home, move_index)
 	await get_tree().create_timer(CombatantView.WINDUP).timeout
-	# Élan : on resserre sur la cible (là où le joueur doit lire le coup).
-	_camera.focus_on(dv_home.lerp(av_home, 0.3), 1.45, 0.16)
+	# Élan : la caméra SUIT la trajectoire et se pose sur le point d'IMPACT (la
+	# cible) — c'est là, devant la caméra, que le joueur doit lire le contact.
+	_camera.focus_on(dv_home.lerp(av_home, 0.12), 1.5, 0.16)
 	await get_tree().create_timer(STRIKE_FAST).timeout
 	# Instant de contact : RALENTI — la fenêtre de parade devient un instant lisible.
 	# (Le compteur _capture_elapsed ralentit aussi : le timing de parade reste juste.)

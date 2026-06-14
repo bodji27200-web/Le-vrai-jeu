@@ -29,6 +29,7 @@ var _visual: Node2D                 ## Sprite2D (pixel art) ou Polygon2D (repli)
 var _base_scale := Vector2.ONE
 var _weapon_pivot: Node2D           ## Pivot au pommeau : on tourne ça pour balayer.
 var _hp_label: Label
+var _idle_tween: Tween              ## Respiration/balancement (le perso "vit").
 
 
 func setup(disp_name: String, sprite_kind: String, body_size: Vector2, is_enemy: bool, fallback_color: Color = Color(0.6, 0.6, 0.65), weapon_override: String = "") -> void:
@@ -105,6 +106,22 @@ func setup(disp_name: String, sprite_kind: String, body_size: Vector2, is_enemy:
 	_hp_label.size = Vector2((_half.x + 30) * 2, 40)
 	add_child(_hp_label)
 
+	_start_idle()
+
+
+## Respiration / léger balancement en boucle (désynchronisé par unité) : les
+## combattants RESPIRENT au lieu d'être des statues. Ne bouge que _visual.position
+## (les anims d'attaque/parade/coup utilisent _body.position et _visual.scale :
+## aucun conflit).
+func _start_idle() -> void:
+	if _visual == null:
+		return
+	var amp := 2.5
+	var dur := 1.0 + randf() * 0.7
+	_idle_tween = create_tween().set_loops()
+	_idle_tween.tween_property(_visual, "position:y", -amp, dur).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_idle_tween.tween_property(_visual, "position:y", 0.0, dur).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
 
 func set_home(pos: Vector2) -> void:
 	position = pos
@@ -142,7 +159,7 @@ func play_attack(target_pos: Vector2, move_index: int = 0) -> void:
 	# vide. Les unités à distance (arc) gardent le petit élan de leur coup sur place.
 	var lunge: float = mp.lunge
 	if not bool(_style.ranged):
-		var gap := 84.0   # s'arrête juste devant la cible
+		var gap := 64.0   # fonce plus près de la cible : l'impact se joue dans sa figure
 		lunge = maxf(mp.lunge, to_target.length() - gap)
 	var t := create_tween()
 	# Armement (tell) : léger recul + arme levée.
@@ -208,6 +225,12 @@ func play_hit() -> void:
 
 
 func set_dead() -> void:
+	if _idle_tween != null and _idle_tween.is_valid():
+		_idle_tween.kill()      # un cadavre ne respire plus
+	# Affaissement : l'unité s'écroule (pas juste un fondu).
+	var t := create_tween()
+	t.tween_property(_body, "rotation", deg_to_rad(-18.0 if _is_enemy else 18.0), 0.3).set_trans(Tween.TRANS_BACK)
+	t.parallel().tween_property(_body, "position", Vector2(0, _half.y * 0.35), 0.3)
 	_body.modulate = Color(0.4, 0.4, 0.4, 0.55)
 	if _shadow != null:
 		_shadow.modulate.a = 0.3
