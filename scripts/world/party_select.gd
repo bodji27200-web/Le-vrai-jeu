@@ -117,6 +117,14 @@ func _build_ui() -> void:
 	_start_btn.pressed.connect(_confirm)
 	add_child(_start_btn)
 
+	var newgame := Button.new()
+	newgame.text = "Nouvelle partie ⟳"
+	newgame.custom_minimum_size = Vector2(180, 44)
+	newgame.position = Vector2(860, 588)
+	newgame.tooltip_text = "Efface la sauvegarde et repart d'une équipe niveau 1."
+	newgame.pressed.connect(_new_game)
+	add_child(newgame)
+
 
 # =============================================================================
 # Détail d'une classe (aperçu + arbre)
@@ -276,6 +284,15 @@ func _refresh_party() -> void:
 
 func _choose_spec(cd: CharacterData, spec: SpecializationData) -> void:
 	cd.chosen_specialization = spec
+	Game.save_game()
+	_refresh_party()
+
+
+func _new_game() -> void:
+	Game.reset_progress()
+	_party.clear()
+	for cd in Game.get_party():
+		_party.append(cd)
 	_refresh_party()
 
 
@@ -290,6 +307,7 @@ func _confirm() -> void:
 	# On conserve l'équipe (et sa progression) ; vide = on garde l'actuelle.
 	if not _party.is_empty():
 		Game.active_party = _party
+		Game.save_game()
 	Game.goto_overworld()
 
 

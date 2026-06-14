@@ -850,3 +850,6 @@ func _award_xp() -> void:
 			var pl := _make_label("    ★ %s peut choisir sa spécialisation — menu Équipe (touche P)" % cd.display_name, 14)
 			pl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
 			_end_box.add_child(pl)
+
+	# La progression est sauvegardée (persiste entre les sessions).
+	Game.save_game()

@@ -209,11 +209,14 @@ Construire dans cet ordre, un système à la fois, en testant avant d'enchaîner
    **persistante** (`Game.get_party()` / `active_party`) gagne de l'XP à la victoire,
    monte de niveau (courbe rapide au début puis ralentit), ce qui débloque les
    compétences (`unlock_level`) et, **au niveau 5**, le choix de spécialisation
-   (`Progression.SPEC_UNLOCK_LEVEL`). Les héros démarrent **niveau 1 sans spé**
-   (plus de niveau choisi à la création). Écran de fin de combat = récap XP/niveaux/
-   nouvelles compétences/spé débloquée. Reste : **sauvegarde** (la progression est
-   en mémoire seulement), montée des stats affichée, **équipement/rareté/amélioration**,
-   armes-identités.
+   (`Progression.SPEC_UNLOCK_LEVEL`). Les héros démarrent **niveau 1 sans spé**.
+   Écran de fin de combat = récap XP/niveaux/compétences/spé débloquée.
+   **Sauvegarde** (`scripts/core/save_system.gd`) : équipe + difficulté en JSON dans
+   `user://save.json` (sur le web = IndexedDB du navigateur → persiste, y compris sur
+   Xbox/Edge). `Game._ready` charge au lancement ; sauvegarde auto à la victoire, au
+   choix de spé et à la validation d'équipe ; bouton « Nouvelle partie » dans l'écran
+   d'équipe (`Game.reset_progress`). Reste : montée des stats affichée,
+   **équipement/rareté/amélioration**, armes-identités.
 7. **Compagnons & relations** : recrutement non automatique, confiance/loyauté,
    conséquences (rejoindre, refuser, partir, trahir).
 8. **New Game+ / mémoire des boss** : ennemis qui « ont progressé », plus
