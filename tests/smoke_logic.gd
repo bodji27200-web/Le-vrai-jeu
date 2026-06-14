@@ -201,5 +201,26 @@ func _initialize() -> void:
 			has_village = true
 	assert(has_village)
 
-	print("OK : invocations + spé + aggro + IA + classes + progression + équipement + village validés.")
+	# --- Première zone (forêt) : rencontres variées + boss à phases + or ---
+	var fz := ContentLibrary.encounters_for_zone("clairiere")
+	assert(fz.size() >= 4)   # plusieurs combats + un boss
+	var boss_enc: EncounterData = fz[fz.size() - 1]
+	assert(not boss_enc.enemies.is_empty() and boss_enc.enemies[0].is_boss)
+	assert(boss_enc.enemies[0].enrage_threshold > 0.0)   # boss à phases
+	var enc_gold := 0
+	for e in boss_enc.enemies:
+		enc_gold += e.gold_reward
+	print("Boss de forêt : %s (enrage à %d%%, or %d)" % [
+		boss_enc.enemies[0].display_name, int(boss_enc.enemies[0].enrage_threshold * 100), enc_gold])
+	assert(enc_gold > 0)
+	var bcb := Combatant.from_enemy(boss_enc.enemies[0])
+	assert(bcb.gold_reward > 0 and bcb.enrage_threshold > 0.0)
+	# Zones non détaillées : pas de rencontres spécifiques (on les ignore).
+	assert(ContentLibrary.encounters_for_zone("givre").is_empty())
+
+	# --- Économie : boutique ---
+	var shop := ContentLibrary.shop_weapons()
+	assert(shop.size() > 0 and ContentLibrary.weapon_price(shop[0]) > 0)
+
+	print("OK : progression + équipement + village + 1re zone (rencontres/boss à phases) + boutique validés.")
 	quit()

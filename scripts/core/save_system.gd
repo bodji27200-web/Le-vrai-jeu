@@ -17,8 +17,8 @@ static func delete_save() -> void:
 		DirAccess.remove_absolute(SAVE_PATH)
 
 
-## Écrit l'état complet (équipe + difficulté + inventaire).
-static func save(party: Array[CharacterData], difficulty: int, inventory: Array[WeaponData] = []) -> void:
+## Écrit l'état complet (équipe + difficulté + inventaire + or).
+static func save(party: Array[CharacterData], difficulty: int, inventory: Array[WeaponData] = [], gold: int = 0) -> void:
 	var entries: Array = []
 	for cd in party:
 		if cd == null or cd.character_class == null:
@@ -37,7 +37,7 @@ static func save(party: Array[CharacterData], difficulty: int, inventory: Array[
 	for w in inventory:
 		if w != null:
 			inv.append(_weapon_to_dict(w))
-	var data := {"version": VERSION, "difficulty": difficulty, "party": entries, "inventory": inv}
+	var data := {"version": VERSION, "difficulty": difficulty, "party": entries, "inventory": inv, "gold": gold}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f == null:
 		push_warning("SaveSystem : écriture impossible (%s)" % SAVE_PATH)
@@ -93,6 +93,7 @@ static func load_state() -> Dictionary:
 		"party": party,
 		"difficulty": int((parsed as Dictionary).get("difficulty", 1)),
 		"inventory": inventory,
+		"gold": int((parsed as Dictionary).get("gold", 0)),
 	}
 
 

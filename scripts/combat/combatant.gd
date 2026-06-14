@@ -24,6 +24,10 @@ var base_damage: int = 5
 var skills: Array[SkillData] = []
 var attack_sequences: Array[int] = [1]
 var xp_reward: int = 0                   ## XP donnée quand cet ennemi est vaincu.
+var gold_reward: int = 0                 ## Or donné quand cet ennemi est vaincu.
+var enrage_threshold: float = 0.0        ## Ratio PV déclenchant la phase 2 (boss).
+var enrage_damage_mult: float = 1.35
+var enraged: bool = false                ## Phase 2 déjà déclenchée ?
 var sprite_kind := ""                   ## Clé du sprite pixel art.
 
 # --- Invocations -------------------------------------------------------------
@@ -169,5 +173,8 @@ static func from_enemy(e: EnemyData) -> Combatant:
 	cb.base_damage = int(round(e.base_damage * GameSettings.enemy_damage_scale()))
 	cb.attack_sequences = e.attack_sequences.duplicate()
 	cb.xp_reward = e.xp_reward
+	cb.gold_reward = e.gold_reward
+	cb.enrage_threshold = e.enrage_threshold
+	cb.enrage_damage_mult = e.enrage_damage_mult
 	cb.sprite_kind = e.sprite_kind
 	return cb

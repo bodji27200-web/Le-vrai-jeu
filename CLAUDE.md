@@ -204,10 +204,19 @@ Construire dans cet ordre, un système à la fois, en testant avant d'enchaîner
    (`scripts/world/village.gd`), zone `is_village` (`ZoneData.is_village`,
    routée par `Game.enter_zone`). Hameau habité de PNJ avec dialogues + léger
    balancement idle (pas des statues) : aubergiste, forgeronne (ouvre
-   l'équipement), marchande, ivrogne, ancien. Reste : secrets/chemins cachés,
-   routines/horaires des PNJ, événements, choix nuancés, quêtes.
-5. **Boss avancés** : phases qui changent la *façon de jouer* (pas +dégâts),
-   mécaniques propres, philosophie de combat, boss secrets.
+   l'équipement), marchande (ouvre la boutique), ivrogne, ancien.
+   **Première zone détaillée** = Clairière d'Émeraude (forêt) : plusieurs
+   rencontres VARIÉES + un boss, via `ContentLibrary.encounters_for_zone(id)` →
+   `zone.gd` place un marqueur par rencontre (la rencontre choisie passe par
+   `Game.pending_encounter`, lue par `battle.gd`). Les autres zones gardent la
+   rencontre de démo générique (on les détaillera plus tard). **Le focus actuel
+   est de rendre cette 1re zone "insane" (démo ~1h) avant d'étoffer les autres.**
+   Reste : secrets/chemins cachés, routines/horaires PNJ, événements, quêtes.
+5. **Boss avancés** : ✅ BASE FAITE. Boss à PHASES via `EnemyData.enrage_threshold` :
+   sous ce ratio de PV, le boss ENRAGE une fois (`battle._maybe_enrage`) — il
+   change de façon de jouer (devient AGRESSIF, frappe plus fort, enchaîne plus),
+   pas un simple +PV. Ex. Gorth (chef bandit) : défensif puis enragé à 50 %.
+   Reste : mécaniques propres par boss, multi-phases, boss secrets.
 6. **Progression** : ✅ BASE FAITE. Boucle XP/niveaux (`scripts/core/progression.gd`)
    gagnée en combat : chaque ennemi donne de l'XP (`EnemyData.xp_reward`), l'équipe
    **persistante** (`Game.get_party()` / `active_party`) gagne de l'XP à la victoire,
@@ -224,8 +233,12 @@ Construire dans cet ordre, un système à la fois, en testant avant d'enchaîner
    défense, PV, crit) appliqués dans `Combatant.from_character` — une arme n'est
    pas "plus forte" mais DIFFÉRENTE. Catalogue `ContentLibrary.loot_weapons()` ;
    `random_loot()` tombe à la victoire (~70 %) dans `Game.inventory` (sauvegardé) ;
-   on équipe depuis l'écran d'équipe (bouton « Changer d'arme »). Reste : montée
-   des stats affichée, rareté/amélioration (forge), boutique de la marchande.
+   on équipe depuis l'écran d'équipe (bouton « Changer d'arme »).
+   **Or & boutique** : les ennemis donnent de l'or (`EnemyData.gold_reward` →
+   `Game.gold`, sauvegardé) ; la marchande du village ouvre `scenes/shop.tscn`
+   (`shop.gd`) pour acheter des armes (`ContentLibrary.shop_weapons` /
+   `weapon_price`). Reste : montée des stats affichée, amélioration d'armes (forge),
+   consommables/objets.
 7. **Compagnons & relations** : recrutement non automatique, confiance/loyauté,
    conséquences (rejoindre, refuser, partir, trahir).
 8. **New Game+ / mémoire des boss** : ennemis qui « ont progressé », plus

@@ -14,3 +14,8 @@ extends Resource
 ## Options de séquences (ex : [1, 3, 5] = le boss choisit 1, 3 ou 5 coups).
 @export var attack_sequences: Array[int] = [1]
 @export var xp_reward: int = 0          ## XP donnée à l'équipe quand il est vaincu.
+@export var gold_reward: int = 0        ## Or donné quand il est vaincu.
+## Boss à phases : sous ce ratio de PV (0 = pas de phase), le boss "enrage" —
+## il devient AGRESSIF (va pour le kill), frappe plus fort et enchaîne plus.
+@export_range(0.0, 1.0, 0.05) var enrage_threshold: float = 0.0
+@export var enrage_damage_mult: float = 1.35

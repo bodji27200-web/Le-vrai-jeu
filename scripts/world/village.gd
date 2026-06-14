@@ -35,11 +35,9 @@ var _npcs := [
 	},
 	{
 		"name": "Selene, la marchande",
-		"pos": Vector2(60, 160), "color": Color(0.45, 0.6, 0.8), "action": "dialogue",
-		"lines": [
-			"Les bonnes affaires se méritent au combat : le butin, c'est mon rayon.",
-			"Reviens me voir quand tes poches tinteront un peu plus.",
-		], "i": 0,
+		"pos": Vector2(60, 160), "color": Color(0.45, 0.6, 0.8), "action": "shop",
+		"lines": ["Or en poche ? J'ai justement quelques lames de qualité…"],
+		"i": 0,
 	},
 	{
 		"name": "Un ivrogne avachi",
@@ -88,7 +86,11 @@ func _update_nearest() -> void:
 	if _near_exit:
 		_prompt.text = "▶ Entrée : revenir à la carte du monde"
 	elif not _near_npc.is_empty():
-		var verb := "parler" if _near_npc.action == "dialogue" else "ouvrir la forge (équipement)"
+		var verb := "parler"
+		if _near_npc.action == "forge":
+			verb = "ouvrir l'équipement (forge)"
+		elif _near_npc.action == "shop":
+			verb = "ouvrir la boutique"
 		_prompt.text = "▶ Entrée : %s — %s" % [verb, _near_npc.name]
 	else:
 		_prompt.text = ""
@@ -103,12 +105,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _near_exit:
 		Game.goto_overworld()
 	elif not _near_npc.is_empty():
-		if _near_npc.action == "forge":
-			Game.goto_party_select()
-		else:
-			var lines: Array = _near_npc.lines
-			_dialogue.text = "%s : « %s »" % [_near_npc.name, lines[_near_npc.i % lines.size()]]
-			_near_npc.i += 1
+		match _near_npc.action:
+			"forge":
+				Game.goto_party_select()
+			"shop":
+				Game.goto_shop()
+			_:
+				var lines: Array = _near_npc.lines
+				_dialogue.text = "%s : « %s »" % [_near_npc.name, lines[_near_npc.i % lines.size()]]
+				_near_npc.i += 1
 
 
 # =============================================================================

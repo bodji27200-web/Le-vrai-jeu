@@ -58,6 +58,12 @@ static func _paint(img: Image, kind: String) -> void:
 			_mage(img, Color8(70, 150, 180), Color8(40, 90, 120), Color8(235, 200, 165), Color8(150, 210, 255), true, false)
 		"moine":
 			_humanoid(img, Color8(235, 200, 165), Color8(210, 140, 70), Color8(150, 90, 44), Color8(240, 220, 150))
+		"loup":
+			_blob(img, Color8(110, 104, 116), Color8(64, 60, 72), Color8(220, 90, 70))
+		"bandit":
+			_humanoid(img, Color8(210, 180, 150), Color8(78, 70, 64), Color8(44, 40, 38), Color8(170, 60, 55))
+		"bandit_chef":
+			_knight(img, Color8(96, 80, 66), Color8(54, 44, 38), Color8(210, 180, 150), Color8(190, 70, 60))
 		_:
 			_humanoid(img, Color8(220, 200, 170), Color8(110, 120, 160), Color8(70, 78, 110), Color8(220, 200, 120))
 

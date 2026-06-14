@@ -40,6 +40,9 @@ const STYLES := {
 	"zombie":          {"weapon": "", "moves": ["overhead", "right"], "scale": 1.0},
 	"goule":           {"weapon": "", "moves": ["left", "right", "left"], "scale": 0.95},
 	"aberration":      {"weapon": "", "moves": ["chop"], "scale": 1.1},
+	"loup":            {"weapon": "", "moves": ["left", "right"], "scale": 0.95},
+	"bandit":          {"weapon": "sword", "moves": ["right", "overhead", "left"]},
+	"bandit_chef":     {"weapon": "greatsword", "moves": ["chop", "right", "overhead"], "scale": 1.2},
 }
 
 const DEFAULT_STYLE := {"weapon": "sword", "moves": ["right", "left"]}

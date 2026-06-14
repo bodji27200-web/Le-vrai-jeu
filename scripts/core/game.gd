@@ -9,6 +9,10 @@ var current_zone: ZoneData = null
 var active_party: Array[CharacterData] = []
 ## Armes non équipées récupérées en butin (persistant).
 var inventory: Array[WeaponData] = []
+## Or accumulé (persistant) — gagné en combat, dépensé à la boutique.
+var gold: int = 0
+## Rencontre à lancer au prochain combat (définie par la zone). Vide = démo.
+var pending_encounter: EncounterData = null
 
 
 ## Au lancement : charge la progression sauvegardée si elle existe.
@@ -25,6 +29,7 @@ func _ready() -> void:
 		for w in st.get("inventory", []):
 			inv.append(w)
 		inventory = inv
+		gold = int(st.get("gold", 0))
 
 
 ## Renvoie l'équipe persistante, en l'initialisant depuis le contenu si besoin.
@@ -35,10 +40,10 @@ func get_party() -> Array[CharacterData]:
 	return active_party
 
 
-## Sauvegarde la progression actuelle (équipe + difficulté + inventaire).
+## Sauvegarde la progression actuelle (équipe + difficulté + inventaire + or).
 func save_game() -> void:
 	if not active_party.is_empty():
-		SaveSystem.save(active_party, int(GameSettings.difficulty), inventory)
+		SaveSystem.save(active_party, int(GameSettings.difficulty), inventory, gold)
 
 
 ## Efface la sauvegarde et repart d'une équipe de démo niveau 1.
@@ -46,7 +51,13 @@ func reset_progress() -> void:
 	SaveSystem.delete_save()
 	active_party = []
 	inventory = []
+	gold = 0
 	get_party()
+
+
+## Ouvre la boutique de la marchande.
+func goto_shop() -> void:
+	_change("res://scenes/shop.tscn")
 
 
 func goto_overworld() -> void:

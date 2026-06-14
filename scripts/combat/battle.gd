@@ -26,6 +26,7 @@ var _views := {}                       ## Combatant -> CombatantView
 var _last_target: Combatant = null     ## Pour varier le ciblage ennemi.
 var _round := 0
 var _battle_xp := 0                     ## XP totale de la rencontre (somme des ennemis).
+var _battle_gold := 0                   ## Or total de la rencontre.
 var _camera: BattleCamera
 var _stage: BattleStage                 ## Décor isométrique (fond + sol).
 var _field: Node2D                      ## Combattants, triés en profondeur (y-sort).
@@ -110,10 +111,13 @@ func _build_teams() -> void:
 	# Équipe PERSISTANTE (la même d'un combat à l'autre, elle gagne de l'XP).
 	for c in Game.get_party():
 		_players.append(Combatant.from_character(c))
-	for e in ContentDB.demo_encounter():
+	# Rencontre choisie par la zone si définie, sinon la rencontre de démo.
+	var foes: Array[EnemyData] = Game.pending_encounter.enemies if Game.pending_encounter != null else ContentDB.demo_encounter()
+	for e in foes:
 		var foe := Combatant.from_enemy(e)
 		_enemies.append(foe)
 		_battle_xp += foe.xp_reward
+		_battle_gold += foe.gold_reward
 
 
 func _build_views() -> void:
@@ -371,6 +375,7 @@ func _pick_ally(allies: Array) -> Combatant:
 
 func _enemy_turn(enemy: Combatant) -> void:
 	_clear_actions()
+	await _maybe_enrage(enemy)
 
 	# L'IA choisit une action qui réagit à la situation.
 	var intent: Dictionary = EnemyBrain.decide(enemy, _enemies, _players, _round)
@@ -472,6 +477,30 @@ func _enemy_turn(enemy: Combatant) -> void:
 		_refresh_ui()
 
 	_set_status("")
+
+
+## Boss à phases : sous son seuil de PV, le boss ENRAGE une fois — il change de
+## façon de jouer (devient agressif, frappe plus fort, enchaîne davantage).
+func _maybe_enrage(enemy: Combatant) -> void:
+	if enemy.enraged or not enemy.is_boss or enemy.enrage_threshold <= 0.0:
+		return
+	if float(enemy.health) / float(enemy.max_health) > enemy.enrage_threshold:
+		return
+	enemy.enraged = true
+	enemy.archetype = GameEnums.Archetype.AGGRESSIVE
+	enemy.base_damage = int(round(enemy.base_damage * enemy.enrage_damage_mult))
+	# Enchaînements plus longs (+1 coup sur la plus longue séquence).
+	var longest := 1
+	for s in enemy.attack_sequences:
+		longest = maxi(longest, s)
+	enemy.attack_sequences.append(longest + 1)
+	enemy.damage_taken_mult = 1.0
+	_log("[b][color=red]%s ENTRE EN RAGE ![/color][/b] Sa façon de combattre change…" % enemy.display_name)
+	if _views.has(enemy):
+		_spawn_damage(_views[enemy], "RAGE !", Color(1, 0.3, 0.3), true)
+		_views[enemy].play_hit()
+	_camera.add_trauma(0.6)
+	await _hitstop(0.05, 0.12)
 
 
 ## Applique l'agressivité de la difficulté au nombre de coups choisi par l'IA.
@@ -850,6 +879,13 @@ func _award_xp() -> void:
 			var pl := _make_label("    ★ %s peut choisir sa spécialisation — menu Équipe (touche P)" % cd.display_name, 14)
 			pl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
 			_end_box.add_child(pl)
+
+	# Or de la rencontre.
+	if _battle_gold > 0:
+		Game.gold += _battle_gold
+		var gl := _make_label("Or : +%d  (total : %d)" % [_battle_gold, Game.gold], 18)
+		gl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4))
+		_end_box.add_child(gl)
 
 	# Butin : bonne chance de récupérer une arme d'identité (→ inventaire).
 	if randf() < 0.7:

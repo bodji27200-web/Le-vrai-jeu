@@ -438,6 +438,20 @@ static func random_loot() -> WeaponData:
 			return pool[i]
 	return pool[0]
 
+## Prix d'achat d'une arme en boutique (selon la rareté).
+static func weapon_price(w: WeaponData) -> int:
+	match w.rarity:
+		GameEnums.Rarity.COMMON: return 20
+		GameEnums.Rarity.RARE: return 60
+		GameEnums.Rarity.EPIC: return 140
+		GameEnums.Rarity.LEGENDARY: return 300
+		GameEnums.Rarity.UNIQUE: return 500
+	return 80
+
+## Stock de la boutique de la marchande (mêmes armes d'identité que le butin).
+static func shop_weapons() -> Array[WeaponData]:
+	return loot_weapons()
+
 ## Nom lisible d'une rareté (pour l'UI).
 static func rarity_name(r: GameEnums.Rarity) -> String:
 	match r:
@@ -485,7 +499,7 @@ static func _character(name: String, cls: ClassData, weapon: WeaponData, level: 
 # ENNEMIS
 # =============================================================================
 
-static func _enemy(name: String, boss: bool, arch: GameEnums.Archetype, dmg: int, stats: StatBlock, seqs: Array[int], sprite: String, element: GameEnums.Element = GameEnums.Element.NONE, xp: int = 0) -> EnemyData:
+static func _enemy(name: String, boss: bool, arch: GameEnums.Archetype, dmg: int, stats: StatBlock, seqs: Array[int], sprite: String, element: GameEnums.Element = GameEnums.Element.NONE, xp: int = 0, gold: int = 0, enrage: float = 0.0) -> EnemyData:
 	var e := EnemyData.new()
 	e.display_name = name
 	e.is_boss = boss
@@ -496,6 +510,8 @@ static func _enemy(name: String, boss: bool, arch: GameEnums.Archetype, dmg: int
 	e.sprite_kind = sprite
 	e.element = element
 	e.xp_reward = xp
+	e.gold_reward = gold
+	e.enrage_threshold = enrage
 	return e
 
 ## Le Chevalier Déchu : boss agressif aux séquences variables (1/3/5 coups).
@@ -511,7 +527,72 @@ static func demo_encounter() -> Array[EnemyData]:
 	return [
 		demo_boss(),
 		_enemy("Garde Squelette", false, GameEnums.Archetype.PROTECTOR, 12,
-			_stats(120, 12, 18, 9, 0.0), [1, 2], "garde_squelette", GameEnums.Element.NONE, 22),
+			_stats(120, 12, 18, 9, 0.0), [1, 2], "garde_squelette", GameEnums.Element.NONE, 22, 12),
 		_enemy("Acolyte Profane", false, GameEnums.Archetype.MANIPULATOR, 8,
-			_stats(90, 8, 8, 13, 0.0), [1], "acolyte", GameEnums.Element.SHADOW, 18),
+			_stats(90, 8, 8, 13, 0.0), [1], "acolyte", GameEnums.Element.SHADOW, 18, 10),
 	]
+
+# =============================================================================
+# PREMIÈRE ZONE : Clairière d'Émeraude (forêt) — démo dense
+# =============================================================================
+
+static func _encounter(id: String, name: String, foes: Array[EnemyData]) -> EncounterData:
+	var e := EncounterData.new()
+	e.id = id
+	e.display_name = name
+	e.enemies = foes
+	return e
+
+## Les rencontres de la forêt : 3 combats variés (répétables) + un boss à phases.
+## Chacune met en avant des archétypes/styles différents (pas juste des sacs à PV).
+static func forest_encounters() -> Array[EncounterData]:
+	var list: Array[EncounterData] = []
+
+	# 1) Meute de loups : rapides et agressifs, l'alpha pousse à l'attaque.
+	list.append(_encounter("foret_loups", "Meute de Loups", [
+		_enemy("Loup Alpha", false, GameEnums.Archetype.AGGRESSIVE, 13,
+			_stats(95, 16, 8, 18, 0.10), [1, 2], "loup", GameEnums.Element.NONE, 16, 12),
+		_enemy("Loup Affamé", false, GameEnums.Archetype.AGGRESSIVE, 10,
+			_stats(60, 12, 5, 16, 0.06), [1], "loup", GameEnums.Element.NONE, 9, 6),
+		_enemy("Loup Affamé", false, GameEnums.Archetype.OPPORTUNIST, 10,
+			_stats(60, 12, 5, 15, 0.06), [1], "loup", GameEnums.Element.NONE, 9, 6),
+	]))
+
+	# 2) Embuscade de bandits : un costaud défensif + harceleurs opportunistes.
+	list.append(_encounter("foret_bandits", "Embuscade de Bandits", [
+		_enemy("Brigand Costaud", false, GameEnums.Archetype.DEFENSIVE, 14,
+			_stats(140, 15, 16, 8, 0.04), [1, 2], "bandit", GameEnums.Element.NONE, 18, 16),
+		_enemy("Bandit", false, GameEnums.Archetype.OPPORTUNIST, 11,
+			_stats(85, 13, 8, 13, 0.07), [1, 2], "bandit", GameEnums.Element.NONE, 12, 10),
+		_enemy("Coupe-Jarret", false, GameEnums.Archetype.AGGRESSIVE, 12,
+			_stats(80, 14, 7, 15, 0.10), [1, 2], "bandit", GameEnums.Element.NONE, 12, 10),
+	]))
+
+	# 3) Morts-vivants : protecteur + manipulateur (combat tactique).
+	list.append(_encounter("foret_mortsvivants", "Mort-vivants de la Clairière", [
+		_enemy("Garde Squelette", false, GameEnums.Archetype.PROTECTOR, 12,
+			_stats(130, 12, 18, 9, 0.0), [1, 2], "garde_squelette", GameEnums.Element.NONE, 16, 12),
+		_enemy("Zombie Putride", false, GameEnums.Archetype.AGGRESSIVE, 13,
+			_stats(120, 14, 10, 6, 0.0), [1], "zombie", GameEnums.Element.SHADOW, 14, 10),
+		_enemy("Acolyte Profane", false, GameEnums.Archetype.MANIPULATOR, 9,
+			_stats(90, 9, 8, 13, 0.0), [1], "acolyte", GameEnums.Element.SHADOW, 16, 12),
+	]))
+
+	# 4) BOSS : Gorth, le Chef Bandit. Phase 1 défensif (il temporise), puis à 50%
+	# de PV il ENRAGE → devient agressif, frappe plus fort et enchaîne. Escorté.
+	list.append(_encounter("foret_boss", "Gorth, le Chef Bandit", [
+		_enemy("Gorth, le Chef Bandit", true, GameEnums.Archetype.DEFENSIVE, 20,
+			_stats(360, 22, 16, 11, 0.06), [2, 3], "bandit_chef", GameEnums.Element.NONE, 90, 70, 0.5),
+		_enemy("Bandit", false, GameEnums.Archetype.PROTECTOR, 11,
+			_stats(95, 12, 12, 11, 0.05), [1, 2], "bandit", GameEnums.Element.NONE, 14, 12),
+		_enemy("Coupe-Jarret", false, GameEnums.Archetype.OPPORTUNIST, 12,
+			_stats(85, 14, 7, 14, 0.10), [1, 2], "bandit", GameEnums.Element.NONE, 14, 12),
+	]))
+
+	return list
+
+## Rencontres disponibles dans une zone donnée (vide = zone non détaillée).
+static func encounters_for_zone(zone_id: String) -> Array[EncounterData]:
+	if zone_id == "clairiere":
+		return forest_encounters()
+	return []
