@@ -222,5 +222,31 @@ func _initialize() -> void:
 	var shop := ContentLibrary.shop_weapons()
 	assert(shop.size() > 0 and ContentLibrary.weapon_price(shop[0]) > 0)
 
-	print("OK : progression + équipement + village + 1re zone (rencontres/boss à phases) + boutique validés.")
+	# --- Compagnons & événements (attachement / choix nuancés) ---
+	var kael := ContentLibrary.companion_kael()
+	assert(kael.is_companion and kael.character_class != null and kael.weapon != null and kael.bio != "")
+	# Loyauté : un compagnon motivé (>=50) se bat avec un léger bonus.
+	kael.loyalty = 70
+	var crit_loyal := Combatant.from_character(kael).crit_chance
+	kael.loyalty = 10
+	var crit_wary := Combatant.from_character(kael).crit_chance
+	print("Loyauté Kael : crit motivé %.2f vs méfiant %.2f" % [crit_loyal, crit_wary])
+	assert(crit_loyal > crit_wary)
+	# Événement de recrutement : choix nuancés (≥3), dont un SANS recrutement.
+	var ev := ContentLibrary.forest_recruit_event()
+	assert(ev.choices.size() >= 3)
+	var has_recruit := false
+	var has_refuse := false
+	for ch in ev.choices:
+		if ch.has("companion"):
+			has_recruit = true
+		else:
+			has_refuse = true
+	assert(has_recruit and has_refuse)
+	# Secret : récompense d'exploration = arme légendaire.
+	var sev := ContentLibrary.forest_secret_event()
+	assert(not sev.choices.is_empty() and sev.choices[0].has("item_weapon"))
+	assert(ContentLibrary.forest_secret_weapon().rarity == GameEnums.Rarity.LEGENDARY)
+
+	print("OK : progression + équipement + 1re zone (rencontres/boss/compagnon/secret) + boutique validés.")
 	quit()

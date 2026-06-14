@@ -21,6 +21,8 @@ var _battle_started := false
 var _encounters: Array[EncounterData] = []
 ## [{ "pos": Vector2, "enc": EncounterData (ou null = démo) }]
 var _enc_points: Array = []
+## [{ "pos": Vector2, "ev": Dictionary }] — événements à choix (recrutement, secret).
+var _event_points: Array = []
 
 
 func _ready() -> void:
@@ -41,6 +43,11 @@ func _process(_delta: float) -> void:
 
 	if _battle_started:
 		return
+	for ep in _event_points:
+		if _player.position.distance_to(ep.pos) < ENCOUNTER_RADIUS:
+			_battle_started = true   # garde anti-double-déclenchement
+			Game.start_event(ep.ev)
+			return
 	for pt in _enc_points:
 		if _player.position.distance_to(pt.pos) < ENCOUNTER_RADIUS:
 			_battle_started = true
@@ -102,6 +109,18 @@ func _build_zone() -> void:
 		var pos := Vector2(650, -250)
 		_add_marker(pos, Color(0.9, 0.25, 0.3), "Ennemi !")
 		_enc_points.append({"pos": pos, "enc": null})
+
+	# Événements de la première zone (recrutement + secret), une seule fois chacun.
+	if _zone.id == "clairiere":
+		if not Game.has_event("foret_recrue"):
+			var ep := Vector2(-420, -260)
+			_add_marker(ep, Color(0.45, 0.85, 0.6), "Voyageur ?")
+			_event_points.append({"pos": ep, "ev": ContentLibrary.forest_recruit_event()})
+		if not Game.has_event("foret_secret"):
+			# Recoin écarté : récompense la curiosité.
+			var sp := Vector2(1120, 640)
+			_add_marker(sp, Color(0.95, 0.88, 0.45), "✦")
+			_event_points.append({"pos": sp, "ev": ContentLibrary.forest_secret_event()})
 
 	# Joueur à taille normale.
 	_player = PlayerAvatar.new()

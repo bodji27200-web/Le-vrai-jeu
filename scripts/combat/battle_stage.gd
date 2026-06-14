@@ -1,7 +1,7 @@
 ## Décor de combat : fond en dégradé + sol ISOMÉTRIQUE (grand losange + grille).
-## Donne la profondeur et la "vue" type Sword of Convallaria, sans grille de jeu
-## (les positions des combattants restent libres). Purement visuel, dessiné par
-## code (cohérent avec la direction pixel art "maison").
+## Donne la profondeur et une vue isométrique, SANS grille de jeu (les positions
+## des combattants restent libres). Purement visuel, dessiné par code (cohérent
+## avec la direction pixel art "maison").
 class_name BattleStage
 extends Node2D
 

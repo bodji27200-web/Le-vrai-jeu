@@ -2,8 +2,9 @@
 
 RPG fantasy médiéval 2D centré sur l'aventure, l'attachement aux personnages,
 la difficulté et la maîtrise du joueur. Inspirations d'esprit (sans copier) :
-Clair Obscur: Expédition 33 (combat/personnages), Sword of Convallaria
-(profondeur des classes), Baldur's Gate 3 (choix & conséquences).
+Clair Obscur: Expédition 33 (esprit du combat, personnages, armes, progression),
+Baldur's Gate 3 (choix, relations & conséquences). Vue de combat isométrique 2D.
+Identité propre — pas de copie.
 
 ## Principes d'architecture (à respecter)
 
@@ -211,7 +212,12 @@ Construire dans cet ordre, un système à la fois, en testant avant d'enchaîner
    `Game.pending_encounter`, lue par `battle.gd`). Les autres zones gardent la
    rencontre de démo générique (on les détaillera plus tard). **Le focus actuel
    est de rendre cette 1re zone "insane" (démo ~1h) avant d'étoffer les autres.**
-   Reste : secrets/chemins cachés, routines/horaires PNJ, événements, quêtes.
+   **Événements à choix** (`scenes/event.tscn` / `event.gd`, data-driven via
+   `Game.start_event`/`pending_event`, one-shot via `Game.event_flags`) : la forêt
+   contient un **recrutement de compagnon** (choix nuancés) et un **secret**
+   (arme légendaire cachée dans un recoin = récompense d'exploration).
+   Reste : routines/horaires PNJ, plus de secrets/événements, quêtes, dialogues
+   à conséquences durables.
 5. **Boss avancés** : ✅ BASE FAITE. Boss à PHASES via `EnemyData.enrage_threshold` :
    sous ce ratio de PV, le boss ENRAGE une fois (`battle._maybe_enrage`) — il
    change de façon de jouer (devient AGRESSIF, frappe plus fort, enchaîne plus),
@@ -239,8 +245,15 @@ Construire dans cet ordre, un système à la fois, en testant avant d'enchaîner
    (`shop.gd`) pour acheter des armes (`ContentLibrary.shop_weapons` /
    `weapon_price`). Reste : montée des stats affichée, amélioration d'armes (forge),
    consommables/objets.
-7. **Compagnons & relations** : recrutement non automatique, confiance/loyauté,
-   conséquences (rejoindre, refuser, partir, trahir).
+7. **Compagnons & relations** : ✅ BASE FAITE. On rencontre les compagnons dans
+   l'aventure (recrutement NON automatique, via événement à choix) — pas de
+   trio imposé en plus du départ. `CharacterData.is_companion` / `loyalty` / `bio`.
+   Kael (`ContentLibrary.companion_kael`) se recrute dans la forêt ; le choix
+   façonne sa **loyauté** de départ (qui donne un bonus de combat ≥ 50).
+   Recrutés → `Game.recruit` (équipe si place, sinon **réserve** `Game.bench`,
+   gérée dans l'écran d'équipe : intégrer/mettre en réserve sans perte de
+   progression). Sauvegardés. Reste : moments personnels, désaccords, départs/
+   trahisons selon les choix, plusieurs compagnons, conséquences durables.
 8. **New Game+ / mémoire des boss** : ennemis qui « ont progressé », plus
    intelligents et dangereux.
 

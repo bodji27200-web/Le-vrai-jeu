@@ -9,3 +9,7 @@ extends Resource
 @export var xp: int = 0                              ## Points d'expérience vers le niveau suivant.
 @export var chosen_specialization: SpecializationData
 @export var portrait: Texture2D
+# --- Compagnon (personnage rencontré, pas un héros de départ) -----------------
+@export var is_companion: bool = false
+@export var loyalty: int = 0                         ## 0..100. Influence le comportement/les bonus.
+@export_multiline var bio: String = ""              ## Histoire courte du compagnon.

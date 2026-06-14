@@ -127,6 +127,10 @@ static func from_character(c: CharacterData) -> Combatant:
 		if spec.max_health_mult != 1.0:
 			cb.max_health = int(round(cb.max_health * spec.max_health_mult))
 			cb.health = cb.max_health
+
+	# Moral d'un compagnon loyal : il se bat avec plus d'allant (léger bonus crit).
+	if c.is_companion and c.loyalty >= 50:
+		cb.crit_chance += 0.05
 	return cb
 
 

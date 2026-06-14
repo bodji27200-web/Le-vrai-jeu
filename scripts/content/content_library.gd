@@ -452,6 +452,58 @@ static func weapon_price(w: WeaponData) -> int:
 static func shop_weapons() -> Array[WeaponData]:
 	return loot_weapons()
 
+# =============================================================================
+# COMPAGNONS & ÉVÉNEMENTS (première zone)
+# =============================================================================
+
+## Kael, un déserteur croisé dans la forêt. Rencontré, jamais imposé.
+static func companion_kael() -> CharacterData:
+	var c := _character("Kael", duelist_class(),
+		_wpn("Lame du Déserteur", 11, GameEnums.Element.NONE, GameEnums.Rarity.EPIC, 5, 0, 0, 0.10,
+			"L'épée d'un homme qui a fui une guerre injuste — et le regrette."),
+		2)
+	c.is_companion = true
+	c.bio = "Ancien soldat en fuite. Rapide, méfiant, mais d'une loyauté farouche envers qui lui rend sa dignité."
+	return c
+
+## Événement de recrutement dans la forêt. Choix NUANCÉS (ni "bon" ni "mauvais") :
+## la décision façonne la loyauté de départ, pas une morale binaire.
+## Chaque choix peut embarquer un "companion" (CharacterData) et/ou un
+## "item_weapon" (WeaponData) appliqués par l'écran d'événement.
+static func forest_recruit_event() -> Dictionary:
+	var k1 := companion_kael()
+	var k2 := companion_kael()
+	return {
+		"id": "foret_recrue",
+		"title": "Un déserteur sur le chemin",
+		"text": "Un homme blessé, l'épée encore au poing, te barre à demi la route. « Je ne cherche pas les ennuis… mais si tu m'aides, ma lame est à toi. »",
+		"choices": [
+			{"text": "L'aider sans rien exiger", "companion": k1, "loyalty": 65,
+				"reply": "Il te dévisage, surpris par ta franchise. « …Alors je me battrai pour toi. Vraiment. » Kael rejoint le groupe."},
+			{"text": "Le recruter, mais qu'il prouve sa valeur", "companion": k2, "loyalty": 25,
+				"reply": "Il serre les dents. « Marché conclu. » Kael te suit — sans illusions, pour l'instant."},
+			{"text": "Le laisser à son sort",
+				"reply": "Tu poursuis ta route. L'homme te suit du regard, puis disparaît entre les arbres."},
+		],
+	}
+
+## Arme unique cachée dans un recoin de la forêt (récompense d'exploration).
+static func forest_secret_weapon() -> WeaponData:
+	return _wpn("Rosée d'Émeraude", 13, GameEnums.Element.EARTH, GameEnums.Rarity.LEGENDARY,
+		4, 4, 20, 0.06, "Une lame oubliée sous la mousse, où perle une sève qui ne sèche jamais.")
+
+## Événement secret de la forêt : récompense l'exploration d'un recoin caché.
+static func forest_secret_event() -> Dictionary:
+	return {
+		"id": "foret_secret",
+		"title": "Une lueur sous la mousse",
+		"text": "Dans un creux oublié, à l'écart du sentier, quelque chose scintille faiblement sous les fougères…",
+		"choices": [
+			{"text": "Dégager la mousse et prendre la lame", "item_weapon": forest_secret_weapon(),
+				"reply": "Tu exhumes la Rosée d'Émeraude, une lame légendaire où perle une sève vivante. (Ajoutée à l'inventaire.)"},
+		],
+	}
+
 ## Nom lisible d'une rareté (pour l'UI).
 static func rarity_name(r: GameEnums.Rarity) -> String:
 	match r:

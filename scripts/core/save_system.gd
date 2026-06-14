@@ -17,27 +17,26 @@ static func delete_save() -> void:
 		DirAccess.remove_absolute(SAVE_PATH)
 
 
-## Écrit l'état complet (équipe + difficulté + inventaire + or).
-static func save(party: Array[CharacterData], difficulty: int, inventory: Array[WeaponData] = [], gold: int = 0) -> void:
+## Écrit l'état complet (équipe + difficulté + inventaire + or + réserve + flags).
+static func save(party: Array[CharacterData], difficulty: int, inventory: Array[WeaponData] = [], gold: int = 0, bench: Array[CharacterData] = [], flags: Array[String] = []) -> void:
 	var entries: Array = []
 	for cd in party:
-		if cd == null or cd.character_class == null:
-			continue
-		var e := {
-			"name": cd.display_name,
-			"class": cd.character_class.display_name,
-			"level": cd.level,
-			"xp": cd.xp,
-			"spec": cd.chosen_specialization.display_name if cd.chosen_specialization != null else "",
-		}
-		if cd.weapon != null:
-			e["weapon"] = _weapon_to_dict(cd.weapon)
-		entries.append(e)
+		var e := _char_to_dict(cd)
+		if not e.is_empty():
+			entries.append(e)
+	var bench_entries: Array = []
+	for cd in bench:
+		var e := _char_to_dict(cd)
+		if not e.is_empty():
+			bench_entries.append(e)
 	var inv: Array = []
 	for w in inventory:
 		if w != null:
 			inv.append(_weapon_to_dict(w))
-	var data := {"version": VERSION, "difficulty": difficulty, "party": entries, "inventory": inv, "gold": gold}
+	var data := {
+		"version": VERSION, "difficulty": difficulty, "party": entries,
+		"inventory": inv, "gold": gold, "bench": bench_entries, "flags": flags,
+	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f == null:
 		push_warning("SaveSystem : écriture impossible (%s)" % SAVE_PATH)
@@ -63,38 +62,77 @@ static func load_state() -> Dictionary:
 	var by_name := _classes_by_name()
 	var party: Array[CharacterData] = []
 	for entry in (parsed as Dictionary).get("party", []):
-		if typeof(entry) != TYPE_DICTIONARY:
-			continue
-		var cls: ClassData = by_name.get(entry.get("class", ""), null)
-		if cls == null:
-			continue   # classe inconnue (contenu modifié) : on ignore ce héros
-		var cd := CharacterData.new()
-		cd.character_class = cls
-		cd.display_name = entry.get("name", cls.display_name)
-		cd.level = int(entry.get("level", 1))
-		cd.xp = int(entry.get("xp", 0))
-		var spec_name: String = entry.get("spec", "")
-		if spec_name != "":
-			for sp in cls.specializations:
-				if sp.display_name == spec_name:
-					cd.chosen_specialization = sp
-					break
-		var w: Variant = entry.get("weapon", null)
-		if typeof(w) == TYPE_DICTIONARY:
-			cd.weapon = _weapon_from_dict(w)
-		party.append(cd)
+		var cd := _char_from_dict(entry, by_name)
+		if cd != null:
+			party.append(cd)
+
+	var bench: Array[CharacterData] = []
+	for entry in (parsed as Dictionary).get("bench", []):
+		var cd := _char_from_dict(entry, by_name)
+		if cd != null:
+			bench.append(cd)
 
 	var inventory: Array[WeaponData] = []
 	for wd in (parsed as Dictionary).get("inventory", []):
 		if typeof(wd) == TYPE_DICTIONARY:
 			inventory.append(_weapon_from_dict(wd))
 
+	var flags: Array[String] = []
+	for fl in (parsed as Dictionary).get("flags", []):
+		flags.append(str(fl))
+
 	return {
 		"party": party,
 		"difficulty": int((parsed as Dictionary).get("difficulty", 1)),
 		"inventory": inventory,
 		"gold": int((parsed as Dictionary).get("gold", 0)),
+		"bench": bench,
+		"flags": flags,
 	}
+
+
+static func _char_to_dict(cd: CharacterData) -> Dictionary:
+	if cd == null or cd.character_class == null:
+		return {}
+	var e := {
+		"name": cd.display_name,
+		"class": cd.character_class.display_name,
+		"level": cd.level,
+		"xp": cd.xp,
+		"spec": cd.chosen_specialization.display_name if cd.chosen_specialization != null else "",
+		"companion": cd.is_companion,
+		"loyalty": cd.loyalty,
+		"bio": cd.bio,
+	}
+	if cd.weapon != null:
+		e["weapon"] = _weapon_to_dict(cd.weapon)
+	return e
+
+
+static func _char_from_dict(entry: Variant, by_name: Dictionary) -> CharacterData:
+	if typeof(entry) != TYPE_DICTIONARY:
+		return null
+	var cls: ClassData = by_name.get(entry.get("class", ""), null)
+	if cls == null:
+		return null   # classe inconnue (contenu modifié) : on ignore ce personnage
+	var cd := CharacterData.new()
+	cd.character_class = cls
+	cd.display_name = entry.get("name", cls.display_name)
+	cd.level = int(entry.get("level", 1))
+	cd.xp = int(entry.get("xp", 0))
+	cd.is_companion = bool(entry.get("companion", false))
+	cd.loyalty = int(entry.get("loyalty", 0))
+	cd.bio = entry.get("bio", "")
+	var spec_name: String = entry.get("spec", "")
+	if spec_name != "":
+		for sp in cls.specializations:
+			if sp.display_name == spec_name:
+				cd.chosen_specialization = sp
+				break
+	var w: Variant = entry.get("weapon", null)
+	if typeof(w) == TYPE_DICTIONARY:
+		cd.weapon = _weapon_from_dict(w)
+	return cd
 
 
 static func _weapon_to_dict(w: WeaponData) -> Dictionary:
